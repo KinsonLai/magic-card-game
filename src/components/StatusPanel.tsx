@@ -1,7 +1,5 @@
-// src/components/StatusPanel.tsx
 import React from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '../features/store/store'
+import { useAppSelector } from '../features/store/store'
 import {
   HeartIcon,
   SparklesIcon,
@@ -9,31 +7,43 @@ import {
   CubeIcon
 } from '@heroicons/react/24/solid'
 
-// 扩展图标组件props类型
-interface IconProps {
+interface IconProps extends React.ComponentPropsWithoutRef<'svg'> {
   className?: string
 }
 
 interface StatusPanelProps {
-  icon: React.ReactElement<IconProps> // 明确要求className属性
+  icon: React.ReactElement<IconProps>
   value: number
   label: string
-  color: string
+  color: `text-${string}-${number}` | `#${string}`
 }
 
 const StatusPanel = ({ icon, value, label, color }: StatusPanelProps) => {
-  const isLoading = useSelector((state: RootState) => state.game.isLoading)
+  const isLoading = useAppSelector((state) => state.game.isLoading)
 
   return (
-    <div className={`p-4 rounded-xl bg-gray-800/50 backdrop-blur-sm border-l-4 border-${color} 
-      transition-all ${isLoading ? 'animate-pulse' : ''}`}>
+    <div className={`p-4 rounded-xl bg-gray-800/50 border-l-4 ${color.startsWith('#') 
+      ? `border-[${color}]` 
+      : `border-${color}`} transition-colors`}
+    >
       <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-lg bg-${color}/10`}>
+        <div className={`p-3 rounded-lg ${color.startsWith('#') 
+          ? `bg-[${color}]/10` 
+          : `bg-${color.split('-')[1]}-400/10`}`}
+        >
           {React.cloneElement(icon, { 
-            className: `w-6 h-6 text-${color} ${isLoading ? 'opacity-50' : ''}`
-          } as React.HTMLAttributes<SVGElement>)} {/* 添加类型断言 */}
+            className: `w-6 h-6 ${color} ${isLoading ? 'animate-pulse' : ''}`,
+            'aria-hidden': true
+          } as React.HTMLAttributes<SVGSVGElement>)}
         </div>
-        {/* ...其余代码保持不变 */}
+        <div>
+          <div className={`text-2xl font-bold ${color}`}>
+            {isLoading ? '--' : value}
+          </div>
+          <div className="text-sm text-gray-300">
+            {label}
+          </div>
+        </div>
       </div>
     </div>
   )

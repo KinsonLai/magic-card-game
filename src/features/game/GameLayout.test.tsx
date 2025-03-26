@@ -1,47 +1,45 @@
-// src/features/game/GameLayout.test.tsx
-import '@testing-library/jest-dom' // 添加這行
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { store, resetStore } from '../store/store'
 import GameLayout from './GameLayout'
 import { selectNation } from '../player/playerSlice'
 
-describe('Game Layout Component', () => {
+describe('GameLayout Component', () => {
+  const user = userEvent.setup()
+
   beforeEach(() => {
     resetStore()
   })
 
-  test('未選擇國家時顯示國家選擇介面', async () => {
-    render(
+  test('完整遊戲流程測試', async () => {
+    const { rerender } = render(
       <Provider store={store}>
         <GameLayout />
       </Provider>
     )
 
-    // 使用 data-testid 精確定位
-    await waitFor(() => {
-      const interfaceElement = screen.getByTestId('nation-select-interface')
-      expect(interfaceElement).toBeInTheDocument()
-      
-      // 驗證內部元素存在
-      expect(screen.getByTestId('nation-select')).toBeInTheDocument()
-      expect(screen.getByText('選擇你的國家')).toBeInTheDocument()
-    }, { timeout: 5000 })
-  })
+    // 階段一：初始狀態驗證
+    expect(screen.getByText(/選擇你的魔法陣營/i)).toBeInTheDocument()
 
-  test('已選擇國家時顯示主介面', async () => {
-    store.dispatch(selectNation('warrior'))
+    // 階段二：選擇國家
+    await user.click(screen.getByTestId('nation-warrior'))
     
-    render(
+    // 驗證 Redux 狀態
+    await waitFor(() => {
+      expect(store.getState().player.nation).toBe('warrior')
+    }, { timeout: 1000 })
+
+    // 階段三：重新渲染並驗證主界面
+    rerender(
       <Provider store={store}>
         <GameLayout />
       </Provider>
     )
-
+    
     await waitFor(() => {
-      const mainInterface = screen.getByTestId('main-interface')
-      expect(mainInterface).toBeInTheDocument()
-      expect(mainInterface).toHaveTextContent('歡迎來到 warrior 的國度！')
-    }, { timeout: 5000 })
+      expect(screen.getByText(/歡迎來到 warrior 的國度！/i)).toBeInTheDocument()
+      expect(screen.getByText('120')).toBeInTheDocument() // 驗證戰士國加成
+    }, { timeout: 2000 })
   })
 })

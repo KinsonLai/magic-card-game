@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 export type Nation = 'warrior' | 'magic' | 'merchant' | 'holy'
 
-interface PlayerState {
+export interface PlayerState {
   nation: Nation | null
   life: number
   mana: number
@@ -24,20 +24,11 @@ const playerSlice = createSlice({
   reducers: {
     selectNation: (state, action: PayloadAction<Nation>) => {
       state.nation = action.payload
-      // 應用國家增益
       switch(action.payload) {
-        case 'warrior':
-          state.life = 120
-          break
-        case 'magic':
-          state.mana = 80
-          break
-        case 'merchant':
-          state.income = 50
-          break
-        case 'holy':
-          state.mana = 100
-          break
+        case 'warrior': state.life = 120; break
+        case 'magic': state.mana = 80; break
+        case 'merchant': state.income = 50; break
+        case 'holy': state.mana = 100; break
       }
     },
     updateResources: (state, action: PayloadAction<{
@@ -45,17 +36,11 @@ const playerSlice = createSlice({
       mana?: number
       money?: number
     }>) => {
-      if (action.payload.life !== undefined) {
-        state.life = Math.max(0, action.payload.life)
-      }
-      if (action.payload.mana !== undefined) {
-        state.mana = action.payload.mana
-      }
-      if (action.payload.money !== undefined) {
-        state.money = action.payload.money
-      }
+      if (action.payload.life !== undefined) state.life = Math.max(0, action.payload.life)
+      if (action.payload.mana !== undefined) state.mana = action.payload.mana
+      if (action.payload.money !== undefined) state.money = action.payload.money
     },
-    reset: () => ({ ...initialState })
+    reset: () => initialState
   }
 })
 
