@@ -1,0 +1,45 @@
+/* 魔法主题变量 */
+:root {
+  --magic-purple: #6d28d9;
+  --nature-green: #10b981;
+  --deep-space: #1a1a2e;
+  --fire-orange: #f59e0b;
+  --text-light: #e2e8f0;
+}
+
+/* 基础重置与字体 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-deep-space text-text-light min-h-screen font-sans;
+}
+
+/* 魔法粒子动态背景 */
+.game-container {
+  background: 
+    radial-gradient(600px at 50% 100px, 
+      rgba(109,40,217,0.15) 0%, 
+      transparent 100%),
+    linear-gradient(to bottom, 
+      rgba(26,26,46,1) 0%,
+      rgba(16,185,129,0.05) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 卡片悬停效果 */
+.nation-card {
+  @apply transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)];
+  transform-style: preserve-3d;
+}
+
+.nation-card:hover {
+  transform: 
+    translateY(-6px)
+    rotateX(5deg)
+    rotateY(-5deg)
+    scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(109, 40, 217, 0.25);
+}
