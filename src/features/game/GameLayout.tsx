@@ -1,70 +1,191 @@
-// src/features/game/GameLayout.test.tsx
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { Provider } from 'react-redux'
-import { store, resetStore } from '../store/store'
-import GameLayout from './GameLayout'
-import { selectNation } from '../player/playerSlice'
+// src/features/game/GameLayout.tsx
+import { useAppSelector, useAppDispatch } from '../store/store'
+import { 
+  drawCard, 
+  playCard, 
+  purchaseCard,
+  depositMoney,
+  withdrawMoney
+} from './gameSlice'
+import StatusPanel from '../../components/StatusPanel'
+import NationSelect from '../player/components/NationSelect'
+import Card from '../../components/Card'
+import BankModal from '../../components/BankModal'
+import {
+  HeartIcon,
+  SparklesIcon,
+  CurrencyDollarIcon,
+  ShoppingCartIcon,
+  BriefcaseIcon,
+  BanknotesIcon
+} from '@heroicons/react/24/solid'
+import { useState } from 'react'
 
-// 初始化用户事件实例
-const user = userEvent.setup()
+const GameLayout = () => {
+  const dispatch = useAppDispatch()
+  const { nation, life, mana, money, income } = useAppSelector(state => state.player)
+  const { turnCount, shopCards, handCards, bankBalance } = useAppSelector(state => state.game)
+  const [showBank, setShowBank] = useState(false)
 
-// 测试套件配置
-describe('GameLayout Component - 完整交互流程', () => {
-  beforeEach(() => {
-    resetStore()
-    // Mock浏览器视窗尺寸
-    window.innerWidth = 1440
-    window.innerHeight = 900
-  })
+  // 卡牌操作处理
+  const handlePlayCard = (cardId: string) => {
+    if (mana >= cardCost) { // 需要根据卡牌实际消耗计算
+      dispatch(playCard(cardId))
+    }
+  }
 
-  test('完整国家选择流程', async () => {
-    // 初始渲染
-    const { rerender } = render(
-      <Provider store={store}>
-        <GameLayout />
-      </Provider>
-    )
+  // 商店购买逻辑
+  const handlePurchase = (cardId: string) => {
+    if (money >= cardPrice) {
+      dispatch(purchaseCard(cardId))
+    }
+  }
 
-    // 阶段一：验证初始状态
-    expect(
-      screen.getByRole('heading', { name: /選擇你的魔法陣營/i })
-    ).toBeInTheDocument()
+  return (
+    <div className="game-container min-h-screen p-8" data-testid="game-container">
+      {!nation ? (
+        <div className="nation-selection">
+          <NationSelect />
+        </div>
+      ) : (
+        <div className="main-interface grid grid-cols-1 md:grid-cols-2 gap-6" data-testid="main-interface">
+          
+          {/* 标题和状态区域 */}
+          <div className="col-span-full space-y-6">
+            <h1 className="text-4xl font-bold text-magic-purple">
+              歡迎來到 {nation} 的國度！ 第 {turnCount} 回合
+            </h1>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <StatusPanel
+                icon={<HeartIcon />}
+                value={life}
+                label="生命值"
+                color="text-red-400"
+                testId="status-panel-life"
+              />
+              <StatusPanel
+                icon={<SparklesIcon />}
+                value={mana}
+                label="魔力值"
+                color="text-blue-400"
+                testId="status-panel-mana"
+              />
+              <StatusPanel
+                icon={<CurrencyDollarIcon />}
+                value={money}
+                label="現金"
+                color="text-green-400"
+                testId="status-panel-money"
+              />
+            </div>
+          </div>
 
-    // 阶段二：模拟用户选择国家
-    await user.click(screen.getByTestId('nation-warrior'))
+          {/* 游戏内容区域 */}
+          <div className="space-y-6">
+            {/* 商店模块 */}
+            <div className="bg-deep-space/50 p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <ShoppingCartIcon className="w-6 h-6 text-fire-orange" />
+                <h2 className="text-2xl font-bold text-fire-orange">魔法商店</h2>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {shopCards.map(card => (
+                  <Card 
+                    key={card.id}
+                    {...card}
+                    actionLabel={`購買 ($${card.price})`}
+                    onAction={() => handlePurchase(card.id)}
+                    disabled={money < card.price}
+                  />
+                ))}
+              </div>
+            </div>
 
-    // 验证Redux状态更新
-    await waitFor(() => {
-      expect(store.getState().player.nation).toBe('warrior')
-    }, { timeout: 2000 })
+            {/* 背包模块 */}
+            <div className="bg-deep-space/50 p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <BriefcaseIcon className="w-6 h-6 text-nature-green" />
+                <h2 className="text-2xl font-bold text-nature-green">魔法背包（{handCards.length}/12）</h2>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                {handCards.map(card => (
+                  <Card
+                    key={card.id}
+                    {...card}
+                    actionLabel="使用"
+                    onAction={() => handlePlayCard(card.id)}
+                    disabled={mana < card.cost}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
 
-    // 阶段三：重新渲染并验证主界面
-    rerender(
-      <Provider store={store}>
-        <GameLayout />
-      </Provider>
-    )
-    
-    // 验证主界面元素
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /歡迎來到 warrior 的國度！/i })
-      ).toBeInTheDocument()
-      expect(
-        screen.getByRole('status-panel', { name: /生命值/i })
-      ).toHaveTextContent('120')
-    }, { timeout: 3000 })
+          {/* 操作面板区域 */}
+          <div className="space-y-6">
+            {/* 银行模块 */}
+            <div className="bg-deep-space/50 p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <BanknotesIcon className="w-6 h-6 text-magic-purple" />
+                <h2 className="text-2xl font-bold text-magic-purple">王國銀行</h2>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  className="btn-primary"
+                  onClick={() => setShowBank(true)}
+                >
+                  存取款操作
+                </button>
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  存款餘額：${bankBalance}
+                </div>
+              </div>
+            </div>
 
-    // 阶段四：验证响应式布局
-    // 调整视窗尺寸
-    window.innerWidth = 375
-    window.dispatchEvent(new Event('resize'))
-    
-    await waitFor(() => {
-      expect(
-        screen.getByTestId('main-interface')
-      ).toHaveStyle('grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))')
-    }, { timeout: 1000 })
-  })
-})
+            {/* 回合操作 */}
+            <div className="bg-deep-space/50 p-6 rounded-xl space-y-4">
+              <button 
+                className="btn-primary w-full"
+                onClick={() => dispatch({ type: 'game/endTurn' })}
+              >
+                結束回合
+              </button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  className="btn-secondary"
+                  onClick={() => dispatch(drawCard())}
+                  disabled={handCards.length >= 12}
+                >
+                  抽卡（剩餘：{deckCount}）
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => dispatch({ type: 'game/openMarket' })}
+                >
+                  房地產市場
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 银行操作模态框 */}
+          <BankModal
+            show={showBank}
+            onClose={() => setShowBank(false)}
+            onDeposit={(amount) => dispatch(depositMoney(amount))}
+            onWithdraw={(amount) => dispatch(withdrawMoney(amount))}
+            balance={bankBalance}
+            cash={money}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default GameLayout
