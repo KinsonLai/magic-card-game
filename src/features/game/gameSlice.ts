@@ -1,4 +1,6 @@
+// src/features/game/gameSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+
 
 type CardType = 'attack' | 'defense' | 'magic' | 'property'
 type Rarity = 'common' | 'rare' | 'epic'
@@ -27,8 +29,8 @@ export interface GameState {
   deckCount: number
 }
 
-const initialState: GameState = {
-  isLoading: true,
+export const initialGameState: GameState = {
+  isLoading: false, // 修改初始加载状态为false
   currentPhase: 'preparation',
   turnCount: 0,
   shopCards: [],
@@ -53,10 +55,10 @@ const generateCard = (): ShopCard => {
 
 const gameSlice = createSlice({
   name: 'game',
-  initialState,
+  initialState: initialGameState,
   reducers: {
     setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload
+      state.isLoading = action.payload;
     },
     nextTurn: (state) => {
       state.turnCount += 1
@@ -87,7 +89,7 @@ const gameSlice = createSlice({
       state.shopCards = Array(5).fill(null).map(() => generateCard())
     },
     resetGame: (state) => {
-      return initialState
+      return initialGameState
     }
   }
 })
@@ -102,5 +104,5 @@ export const {
   withdrawMoney,
   refreshShop,
   resetGame
-} = gameSlice.actions
+} = gameSlice.actions;
 export default gameSlice.reducer

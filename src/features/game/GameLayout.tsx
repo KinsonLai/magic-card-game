@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '../store/store'
 import { 
+  setLoading,
   drawCard, 
   playCard, 
   purchaseCard,
@@ -24,6 +25,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 
+
 // 确保使用默认导出
 const GameLayout = () => {
   const dispatch = useAppDispatch()
@@ -32,8 +34,9 @@ const GameLayout = () => {
   const [showBank, setShowBank] = useState(false)
 
   useEffect(() => {
-    dispatch(refreshShop())
-  }, [dispatch])
+    dispatch(setLoading(false)); // 确保使用正确命名的action
+    dispatch(refreshShop());
+  }, [dispatch]);
 
   const handlePlayCard = (cardId: string) => {
     const card = handCards.find(c => c.id === cardId)

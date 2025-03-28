@@ -1,4 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit'
+// File: src/features/store/store.ts
+import { configureStore, combineReducers, AnyAction } from '@reduxjs/toolkit'
 import { 
   persistStore,
   persistReducer,
@@ -10,22 +11,32 @@ import {
   REGISTER
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
-import { combineReducers } from 'redux'
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
-import gameReducer from '../game/gameSlice'
+import gameReducer, { initialGameState } from '../game/gameSlice'
 import playerReducer from '../player/playerSlice'
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   game: gameReducer,
   player: playerReducer
 })
+
+const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: AnyAction) => {
+  if (action.type === 'RESET') {
+    storage.removeItem('persist:root')
+    return appReducer(undefined, action)
+  }
+  return appReducer(state, action)
+}
 
 const persistConfig = {
   key: 'root',
   version: 1,
   storage,
   whitelist: ['player', 'game'],
-  migrate: (state: any) => Promise.resolve(state)
+  migrate: (state: any) => {
+    if (!state) return Promise.resolve({ player: null, game: initialGameState })
+    return Promise.resolve(state)
+  }
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

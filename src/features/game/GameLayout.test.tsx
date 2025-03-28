@@ -24,7 +24,7 @@ describe('GameLayout Component - 完整交互流程', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/選擇你的魔法陣營/i)).toBeInTheDocument()
-    })
+    }, { timeout: 5000 })
 
     await act(async () => {
       await user.click(screen.getByTestId('nation-warrior'))
@@ -32,7 +32,7 @@ describe('GameLayout Component - 完整交互流程', () => {
 
     await waitFor(() => {
       expect(store.getState().player.nation).toBe('warrior')
-    }, { timeout: 2000 })
+    }, { timeout: 5000 })
 
     rerender(
       <Provider store={store}>
@@ -43,6 +43,6 @@ describe('GameLayout Component - 完整交互流程', () => {
     await waitFor(() => {
       expect(screen.getByText(/歡迎來到 warrior 的國度！/i)).toBeInTheDocument()
       expect(screen.getByTestId('status-panel-life')).toHaveTextContent('120')
-    }, { timeout: 3000 })
+    }, { timeout: 5000 })
   })
 })

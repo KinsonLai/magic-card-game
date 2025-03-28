@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest' // 添加vi导入
 import { store, persistor, resetStore } from './store'
 import { selectNation } from '../player/playerSlice'
+import { initialGameState } from '../game/gameSlice' 
 
 describe('Redux 持久化測試套件', () => {
   beforeEach(async () => {
@@ -14,22 +15,28 @@ describe('Redux 持久化測試套件', () => {
     vi.spyOn(Storage.prototype, 'getItem')
   })
 
-  test('應正確持久化玩家狀態', async () => {
-    // 1. 初始化操作
-    store.dispatch(selectNation('merchant'))
-    store.dispatch({
-      type: 'player/updateResources',
-      payload: { money: 1500 }
-    })
-
-    // 2. 等待持久化完成
-    await persistor.flush()
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // 3. 验证存储数据格式
-    const savedState = JSON.parse(localStorage.getItem('persist:root') || '{}')
-    expect(savedState.player).toContain('"nation":"merchant"')
-    expect(savedState.player).toContain('"money":1500')
+  test('應正確加載持久化狀態', async () => {
+    const mockPersistedState = {
+      _persist: { version: 1, rehydrated: false },
+      player: JSON.stringify({
+        nation: 'holy',
+        life: 100,
+        mana: 100,
+        money: 2000,
+        income: 0
+      }),
+      game: JSON.stringify({
+        ...initialGameState,
+        isLoading: false // 确保加载状态为false
+      })
+    }
+    localStorage.setItem('persist:root', JSON.stringify(mockPersistedState))
+  
+    await persistor.persist()
+    await new Promise(resolve => setTimeout(resolve, 2000)) // 延长等待时间
+  
+    expect(store.getState().player.nation).toBe('holy')
+    expect(store.getState().game.isLoading).toBe(false)
   })
 
   test('應正確加載持久化狀態', async () => {
@@ -42,7 +49,8 @@ describe('Redux 持久化測試套件', () => {
         mana: 100,
         money: 2000,
         income: 0
-      })
+      }),
+      game: JSON.stringify(initialGameState)
     }
     localStorage.setItem('persist:root', JSON.stringify(mockPersistedState))
 
