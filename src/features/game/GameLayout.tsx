@@ -1,12 +1,15 @@
-// src/features/game/GameLayout.tsx
+import { useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '../store/store'
 import { 
   drawCard, 
   playCard, 
   purchaseCard,
   depositMoney,
-  withdrawMoney
+  withdrawMoney,
+  refreshShop,
+  nextTurn
 } from './gameSlice'
+import { updateResources } from '../player/playerSlice'
 import StatusPanel from '../../components/StatusPanel'
 import NationSelect from '../player/components/NationSelect'
 import Card from '../../components/Card'
@@ -21,23 +24,35 @@ import {
 } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 
+// 确保使用默认导出
 const GameLayout = () => {
   const dispatch = useAppDispatch()
   const { nation, life, mana, money, income } = useAppSelector(state => state.player)
-  const { turnCount, shopCards, handCards, bankBalance } = useAppSelector(state => state.game)
+  const { turnCount, shopCards, handCards, bankBalance, deckCount } = useAppSelector(state => state.game)
   const [showBank, setShowBank] = useState(false)
 
-  // 卡牌操作处理
-  const handlePlayCard = (cardId: string) => {
-    if (mana >= cardCost) { // 需要根据卡牌实际消耗计算
-      dispatch(playCard(cardId))
-    }
-  }
+  useEffect(() => {
+    dispatch(refreshShop())
+  }, [dispatch])
 
-  // 商店购买逻辑
-  const handlePurchase = (cardId: string) => {
-    if (money >= cardPrice) {
-      dispatch(purchaseCard(cardId))
+  const handlePlayCard = (cardId: string) => {
+    const card = handCards.find(c => c.id === cardId)
+    if (card && mana >= card.cost) {
+      dispatch(playCard(cardId))
+      switch(card.type) {
+        case 'property':
+          dispatch(updateResources({ income: income + card.price }))
+          break
+        case 'attack':
+          dispatch(updateResources({ mana: mana - card.cost }))
+          break
+        case 'defense':
+          dispatch(updateResources({ 
+            mana: mana - card.cost,
+            life: life + 5 
+          }))
+          break
+      }
     }
   }
 
@@ -96,7 +111,7 @@ const GameLayout = () => {
                     key={card.id}
                     {...card}
                     actionLabel={`購買 ($${card.price})`}
-                    onAction={() => handlePurchase(card.id)}
+                    onAction={() => dispatch(purchaseCard(card.id))}
                     disabled={money < card.price}
                   />
                 ))}
@@ -150,7 +165,7 @@ const GameLayout = () => {
             <div className="bg-deep-space/50 p-6 rounded-xl space-y-4">
               <button 
                 className="btn-primary w-full"
-                onClick={() => dispatch({ type: 'game/endTurn' })}
+                onClick={() => dispatch(nextTurn())}
               >
                 結束回合
               </button>
@@ -165,9 +180,9 @@ const GameLayout = () => {
                 </button>
                 <button
                   className="btn-secondary"
-                  onClick={() => dispatch({ type: 'game/openMarket' })}
+                  onClick={() => dispatch(refreshShop())}
                 >
-                  房地產市場
+                  刷新商店
                 </button>
               </div>
             </div>

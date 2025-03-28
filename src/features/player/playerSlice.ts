@@ -35,14 +35,17 @@ const playerSlice = createSlice({
       life?: number
       mana?: number
       money?: number
+      income?: number
     }>) => {
       if (action.payload.life !== undefined) state.life = Math.max(0, action.payload.life)
       if (action.payload.mana !== undefined) state.mana = action.payload.mana
       if (action.payload.money !== undefined) state.money = action.payload.money
+      if (action.payload.income !== undefined) state.income = action.payload.income
     },
     reset: () => initialState
   }
 })
 
+// 确保导出updateResources
 export const { selectNation, updateResources, reset } = playerSlice.actions
 export default playerSlice.reducer

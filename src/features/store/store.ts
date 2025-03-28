@@ -1,4 +1,3 @@
-// src/features/store/store.ts
 import { configureStore } from '@reduxjs/toolkit'
 import { 
   persistStore,
@@ -12,6 +11,7 @@ import {
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { combineReducers } from 'redux'
+import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
 import gameReducer from '../game/gameSlice'
 import playerReducer from '../player/playerSlice'
 
@@ -24,7 +24,7 @@ const persistConfig = {
   key: 'root',
   version: 1,
   storage,
-  whitelist: ['player'],
+  whitelist: ['player', 'game'],
   migrate: (state: any) => Promise.resolve(state)
 }
 
@@ -41,6 +41,8 @@ export const store = configureStore({
 })
 
 export const persistor = persistStore(store)
-export type RootState = ReturnType<typeof rootReducer>
+export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 export const resetStore = () => store.dispatch({ type: 'RESET' })

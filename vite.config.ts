@@ -1,21 +1,14 @@
-import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
 
-// 模拟 localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString()
-    },
-    removeItem: (key: string) => {
-      delete store[key]
-    },
-    clear: () => {
-      store = {}
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/vitest.setup.ts',
+    coverage: {
+      provider: 'v8'
     }
   }
-})()
-
-vi.stubGlobal('localStorage', localStorageMock)
+})
