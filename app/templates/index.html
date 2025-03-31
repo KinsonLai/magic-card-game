@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}首頁 - 魔法卡片對戰{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="jumbotron py-5">
+            <h1 class="display-4" id="game-title">魔法卡片對戰</h1>
+            <p class="lead">在這個充滿魔法的世界中，四國因不和而互相開戰。選擇您的國家，收集強力卡牌，打敗對手！</p>
+            <hr class="my-4">
+            <p>加入遊戲，體驗多人線上卡牌對戰的樂趣！</p>
+            
+            {% if current_user.is_authenticated %}
+            <div class="mt-4">
+                <a href="{{ url_for('main.lobby') }}" class="btn btn-primary btn-lg" id="enter-lobby-btn">進入遊戲大廳</a>
+                <a href="{{ url_for('main.create_room') }}" class="btn btn-success btn-lg ms-2" id="create-room-btn">創建新房間</a>
+                <a href="{{ url_for('main.tutorial') }}" class="btn btn-info btn-lg ms-2" id="tutorial-btn">遊戲教學</a>
+            </div>
+            {% else %}
+            <div class="mt-4">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg" id="login-btn">登入</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg ms-2" id="register-btn">註冊</a>
+                <a href="{{ url_for('main.tutorial') }}" class="btn btn-info btn-lg ms-2" id="tutorial-btn">遊戲教學</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

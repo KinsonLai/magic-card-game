@@ -1,0 +1,792 @@
+{% extends "base.html" %}
+
+{% block title %}遊戲房間 #{{ room.code }} - 魔法卡片對戰{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .game-card {
+        width: 120px;
+        height: 160px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    
+    .game-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    
+    .game-card .card-name {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .game-card .card-type {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+    
+    .game-card .card-desc {
+        font-size: 11px;
+        flex-grow: 1;
+        overflow: hidden;
+    }
+    
+    .game-card .card-cost {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #ff6600;
+    }
+    
+    .game-card.industry { background-color: #e6f7ff; }
+    .game-card.attack { background-color: #fff1f0; }
+    .game-card.defense { background-color: #f6ffed; }
+    .game-card.missile { background-color: #fff0f6; }
+    .game-card.magic { background-color: #f9f0ff; }
+    .game-card.contract { background-color: #fffbe6; }
+    .game-card.enchantment { background-color: #fcffe6; }
+
+    .player-info {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .current-player {
+        border: 2px solid #1890ff;
+        background-color: #e6f7ff;
+    }
+    
+    .resource-bar {
+        height: 20px;
+        border-radius: 10px;
+        margin: 5px 0;
+        position: relative;
+    }
+    
+    .resource-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+    
+    .resource-bar-text {
+        position: relative;
+        text-align: center;
+        line-height: 20px;
+        font-size: 12px;
+        color: #fff;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    }
+    
+    .life-bar .resource-bar-fill { background-color: #52c41a; }
+    .mana-bar .resource-bar-fill { background-color: #1890ff; }
+    
+    .chat-container {
+        height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+    
+    /* 遊戲狀態區域 */
+    #game-status {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px 20px;
+        z-index: 1000;
+        display: none;
+    }
+    
+    /* 選擇國家區域 */
+    #nation-selection {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nation-card {
+        width: 200px;
+        height: 300px;
+        margin: 0 15px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    
+    .nation-card:hover {
+        transform: scale(1.05);
+    }
+    
+    .nation-card h3 {
+        margin-top: 15px;
+    }
+    
+    .nation-card p {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    
+    /* 商店區域 */
+    .shop-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 20px;
+    }
+    
+    /* 玩家操作區域 */
+    .action-area {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+    
+    .action-btn {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between mb-3">
+            <h2>房間 #{{ room.code }}</h2>
+            <div>
+                {% if current_user.id == room.creator_id and room.status == 'waiting' %}
+                <button id="start-game-btn" class="btn btn-success">開始遊戲</button>
+                {% endif %}
+                <a href="{{ url_for('game.leave_room_http', room_code=room.code) }}" class="btn btn-outline-secondary ml-2">返回大廳</a>
+            </div>
+        </div>
+        
+        <!-- 等待區域 (遊戲開始前) -->
+        <div id="waiting-area" class="card mb-4">
+            <div class="card-header">
+                正在等待其他玩家...
+            </div>
+            <div class="card-body">
+                <h5>遊戲設置</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>基本設定</h6>
+                        <ul>
+                            <li>模式: 
+                            {% if room.mode == 'normal' %}一般模式
+                            {% elif room.mode == 'quick' %}快速模式
+                            {% else %}自訂模式
+                            {% endif %}</li>
+                            <li>最大玩家數: {{ room.max_players }}</li>
+                            <li>災害系統: {{ '啟用' if room.disaster_enabled else '禁用' }}</li>
+                            <li>祝福系統: {{ '啟用' if room.blessing_enabled else '禁用' }}</li>
+                        </ul>
+                    </div>
+                    
+                    {% if room.mode == 'quick' or room.mode == 'custom' %}
+                    <div class="col-md-6">
+                        <h6>進階設定</h6>
+                        <ul>
+                            <li>初始金錢: {{ room.initial_money }}</li>
+                            <li>收入倍率: {{ room.income_multiplier }}x</li>
+                            <li>魔力回復率: {{ room.mana_recovery_rate }}x</li>
+                            <li>事件頻率: 每{{ room.event_frequency }}回合</li>
+                            <li>隨機分配國家: {{ '是' if room.random_nation else '否' }}</li>
+                            <li>允許國家重複: {{ '是' if room.allow_duplicate_nations else '否' }}</li>
+                            {% if room.mode == 'custom' %}
+                            <li>初始生命值: {{ room.initial_life }}</li>
+                            <li>初始魔力值: {{ room.initial_mana }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <h5 class="mt-3">玩家列表</h5>
+                <ul id="player-list" class="list-group">
+                    {% for player in room.players %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ player.username }}
+                        {% if player.id == room.creator_id %}
+                        <span class="badge bg-primary">房主</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <p class="mt-3">房間代碼：<span class="fw-bold">{{ room.code }}</span> (分享給朋友以邀請他們加入)</p>
+            </div>
+        </div>
+        
+        <!-- 選擇國家 (遊戲開始後) -->
+        <div id="nation-selection" style="display: none;">
+            <div class="nation-card" data-nation="fighter" id="nation-fighter">
+                <h3>鬥士之國</h3>
+                <p>士氣高漲：提升生命上限、增加攻擊卡牌的攻擊力</p>
+            </div>
+            <div class="nation-card" data-nation="holy" id="nation-holy">
+                <h3>神聖之國</h3>
+                <p>神的加護：魔力全滿時消耗全部魔力以隨機消除一項減益，並獲得一個增益</p>
+            </div>
+            <div class="nation-card" data-nation="merchant" id="nation-merchant">
+                <h3>商業之國</h3>
+                <p>精明管理：增加產業收入</p>
+            </div>
+            <div class="nation-card" data-nation="magic" id="nation-magic">
+                <h3>魔法之國</h3>
+                <p>資深魔法：增強附魔效果、提升魔力容量</p>
+            </div>
+        </div>
+        
+        <!-- 遊戲區域 (遊戲進行中) -->
+        <div id="game-area" style="display: none;">
+            <!-- 玩家資訊區 -->
+            <div class="row mb-4" id="players-info">
+                <!-- 動態生成玩家資訊 -->
+            </div>
+            
+            <!-- 商店區域 -->
+            <div class="shop-container" id="shop-container">
+                <h4>商店</h4>
+                <div class="card-container" id="shop-cards">
+                    <!-- 動態生成商店卡牌 -->
+                </div>
+            </div>
+            
+            <!-- 玩家卡牌區域 -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4>您的背包</h4>
+                    <div class="card-container" id="player-backpack">
+                        <!-- 動態生成玩家背包卡牌 -->
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4>您的產業</h4>
+                    <div class="card-container" id="player-land">
+                        <!-- 動態生成玩家產業卡牌 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 玩家操作區域 -->
+            <div class="action-area">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>銀行操作</h4>
+                        <div class="bank-operations mb-3">
+                            <div class="input-group mb-2">
+                                <input type="number" id="bank-amount" class="form-control" placeholder="金額" min="1">
+                                <button class="btn btn-primary" id="deposit-btn">存款</button>
+                                <button class="btn btn-success" id="withdraw-btn">提款</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>回合操作</h4>
+                        <button class="btn btn-danger btn-lg action-btn" id="end-turn-btn">結束回合</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 遊戲聊天區域 -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        房間聊天
+                    </div>
+                    <div class="card-body">
+                        <div class="chat-container" id="chat-messages">
+                            <div class="text-center text-muted">
+                                <small>加入了房間</small>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="chat-input" class="form-control" placeholder="輸入訊息...">
+                            <button class="btn btn-primary" id="send-chat-btn">發送</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 遊戲狀態通知 -->
+        <div id="game-status">
+            <p id="status-message"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomCode = "{{ room.code }}";
+        const currentUserId = {{ current_user.id }};
+        const socket = io();
+        let gameState = null;
+        let selectedCardId = null;
+        let selectedTargetId = null;
+        
+        // 連接到WebSocket
+        socket.on('connect', function() {
+            console.log('Connected to WebSocket');
+            socket.emit('join', {room_code: roomCode});
+        });
+        
+        // 監聽房間狀態更新
+        socket.on('status', function(data) {
+            addChatMessage(data.msg, 'system');
+        });
+        
+        // 監聽遊戲開始
+        socket.on('game_started', function(data) {
+            if (data.status === 'success') {
+                document.getElementById('waiting-area').style.display = 'none';
+                document.getElementById('nation-selection').style.display = 'flex';
+            }
+        });
+        
+        // 監聽遊戲狀態更新
+        socket.on('update_game_state', function(data) {
+            gameState = JSON.parse(data);
+            updateGameUI();
+        });
+        
+        // 監聽錯誤
+        socket.on('error', function(data) {
+            showStatus(data.msg, 'error');
+        });
+        
+        // 監聽聊天訊息
+        socket.on('chat_message', function(data) {
+            addChatMessage(data.msg, 'user');
+        });
+        
+        // 監聽玩家列表更新
+        socket.on('update_player_list', function(data) {
+            console.log('Received player list update:', data);
+            updatePlayerList(data.players);
+        });
+        
+        // 開始遊戲按鈕
+        const startGameBtn = document.getElementById('start-game-btn');
+        if (startGameBtn) {
+            startGameBtn.addEventListener('click', function() {
+                socket.emit('start_game', {room_code: roomCode});
+            });
+        }
+        
+        // 選擇國家
+        const nationCards = document.querySelectorAll('.nation-card');
+        nationCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const nation = this.getAttribute('data-nation');
+                socket.emit('select_nation', {
+                    room_code: roomCode,
+                    nation: nation
+                });
+                document.getElementById('nation-selection').style.display = 'none';
+                document.getElementById('game-area').style.display = 'block';
+            });
+        });
+        
+        // 存款按鈕
+        const depositBtn = document.getElementById('deposit-btn');
+        if (depositBtn) {
+            depositBtn.addEventListener('click', function() {
+                const amount = parseInt(document.getElementById('bank-amount').value);
+                if (isNaN(amount) || amount <= 0) {
+                    showStatus('請輸入有效金額', 'error');
+                    return;
+                }
+                
+                socket.emit('bank_operation', {
+                    room_code: roomCode,
+                    operation: 'deposit',
+                    amount: amount
+                });
+            });
+        }
+        
+        // 提款按鈕
+        const withdrawBtn = document.getElementById('withdraw-btn');
+        if (withdrawBtn) {
+            withdrawBtn.addEventListener('click', function() {
+                const amount = parseInt(document.getElementById('bank-amount').value);
+                if (isNaN(amount) || amount <= 0) {
+                    showStatus('請輸入有效金額', 'error');
+                    return;
+                }
+                
+                socket.emit('bank_operation', {
+                    room_code: roomCode,
+                    operation: 'withdraw',
+                    amount: amount
+                });
+            });
+        }
+        
+        // 結束回合按鈕
+        const endTurnBtn = document.getElementById('end-turn-btn');
+        if (endTurnBtn) {
+            endTurnBtn.addEventListener('click', function() {
+                socket.emit('end_turn', {room_code: roomCode});
+            });
+        }
+        
+        // 更新遊戲UI
+        function updateGameUI() {
+            if (!gameState) return;
+            
+            // 更新玩家資訊
+            updatePlayersInfo();
+            
+            // 更新商店
+            updateShop();
+            
+            // 更新玩家卡牌
+            updatePlayerCards();
+            
+            // 更新當前玩家狀態
+            updateCurrentPlayerStatus();
+        }
+        
+        // 更新玩家資訊
+        function updatePlayersInfo() {
+            const playersInfoContainer = document.getElementById('players-info');
+            playersInfoContainer.innerHTML = '';
+            
+            gameState.players.forEach((player, index) => {
+                const isCurrentPlayer = gameState.current_player === index;
+                const playerInfo = document.createElement('div');
+                playerInfo.className = `col-md-3 player-info ${isCurrentPlayer ? 'current-player' : ''}`;
+                playerInfo.setAttribute('data-player-id', player.user_id);
+                
+                // 生命條
+                const lifePercentage = (player.life / player.max_life) * 100;
+                const lifeBar = `
+                    <div>生命: ${player.life}/${player.max_life}</div>
+                    <div class="resource-bar life-bar">
+                        <div class="resource-bar-fill" style="width: ${lifePercentage}%"></div>
+                        <div class="resource-bar-text">${player.life}/${player.max_life}</div>
+                    </div>
+                `;
+                
+                // 魔力條
+                const manaPercentage = (player.mana / player.max_mana) * 100;
+                const manaBar = `
+                    <div>魔力: ${player.mana}/${player.max_mana}</div>
+                    <div class="resource-bar mana-bar">
+                        <div class="resource-bar-fill" style="width: ${manaPercentage}%"></div>
+                        <div class="resource-bar-text">${player.mana}/${player.max_mana}</div>
+                    </div>
+                `;
+                
+                // 國家與金錢資訊
+                let nationName = '';
+                switch(player.nation) {
+                    case 'fighter': nationName = '鬥士之國'; break;
+                    case 'holy': nationName = '神聖之國'; break;
+                    case 'merchant': nationName = '商業之國'; break;
+                    case 'magic': nationName = '魔法之國'; break;
+                    default: nationName = '未選擇'; break;
+                }
+                
+                playerInfo.innerHTML = `
+                    <h5>${player.username} ${isCurrentPlayer ? '(當前回合)' : ''}</h5>
+                    <div>國家: ${nationName}</div>
+                    ${lifeBar}
+                    ${manaBar}
+                    <div>現金: ${player.money_cash}</div>
+                    <div>銀行: ${player.money_bank}</div>
+                    <div>收入: ${player.income}</div>
+                `;
+                
+                // 如果是其他玩家，添加可點擊事件作為目標
+                if (player.user_id !== currentUserId) {
+                    playerInfo.classList.add('selectable-target');
+                    playerInfo.addEventListener('click', function() {
+                        if (selectedCardId !== null) {
+                            selectedTargetId = player.user_id;
+                            playCard();
+                        }
+                    });
+                }
+                
+                playersInfoContainer.appendChild(playerInfo);
+            });
+        }
+        
+        // 更新商店卡牌
+        function updateShop() {
+            const shopContainer = document.getElementById('shop-cards');
+            shopContainer.innerHTML = '';
+            
+            gameState.shop_cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `game-card ${card.type}`;
+                cardElement.setAttribute('data-card-index', index);
+                
+                cardElement.innerHTML = `
+                    <div class="card-cost">${card.cost}</div>
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-type">${getCardTypeChinese(card.type)}</div>
+                    <div class="card-desc">${card.description}</div>
+                `;
+                
+                cardElement.addEventListener('click', function() {
+                    buyCard(index);
+                });
+                
+                shopContainer.appendChild(cardElement);
+            });
+        }
+        
+        // 更新玩家卡牌
+        function updatePlayerCards() {
+            // 查找當前玩家
+            const currentPlayer = gameState.players.find(p => p.user_id === currentUserId);
+            if (!currentPlayer) return;
+            
+            // 更新背包
+            const backpackContainer = document.getElementById('player-backpack');
+            backpackContainer.innerHTML = '';
+            
+            currentPlayer.backpack.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `game-card ${card.type}`;
+                cardElement.setAttribute('data-card-index', index);
+                
+                cardElement.innerHTML = `
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-type">${getCardTypeChinese(card.type)}</div>
+                    <div class="card-desc">${card.description}</div>
+                `;
+                
+                cardElement.addEventListener('click', function() {
+                    selectedCardId = index;
+                    
+                    // 如果卡牌不需要目標，直接打出
+                    if (!card.requires_target) {
+                        playCard();
+                    } else {
+                        showStatus('請選擇目標玩家', 'info');
+                    }
+                });
+                
+                backpackContainer.appendChild(cardElement);
+            });
+            
+            // 更新產業
+            const landContainer = document.getElementById('player-land');
+            landContainer.innerHTML = '';
+            
+            currentPlayer.land.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `game-card ${card.type}`;
+                
+                cardElement.innerHTML = `
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-type">${getCardTypeChinese(card.type)}</div>
+                    <div class="card-desc">${card.description}</div>
+                `;
+                
+                landContainer.appendChild(cardElement);
+            });
+        }
+        
+        // 更新當前玩家狀態
+        function updateCurrentPlayerStatus() {
+            const isMyTurn = gameState.current_player_id === currentUserId;
+            const endTurnBtn = document.getElementById('end-turn-btn');
+            const depositBtn = document.getElementById('deposit-btn');
+            const withdrawBtn = document.getElementById('withdraw-btn');
+            
+            if (endTurnBtn) endTurnBtn.disabled = !isMyTurn;
+            if (depositBtn) depositBtn.disabled = !isMyTurn;
+            if (withdrawBtn) withdrawBtn.disabled = !isMyTurn;
+            
+            if (isMyTurn) {
+                showStatus('現在是您的回合', 'success');
+            }
+        }
+        
+        // 購買卡牌
+        function buyCard(cardIndex) {
+            if (gameState.current_player_id !== currentUserId) {
+                showStatus('不是您的回合', 'error');
+                return;
+            }
+            
+            socket.emit('buy_card', {
+                room_code: roomCode,
+                card_index: cardIndex
+            });
+        }
+        
+        // 打出卡牌
+        function playCard() {
+            if (gameState.current_player_id !== currentUserId) {
+                showStatus('不是您的回合', 'error');
+                return;
+            }
+            
+            socket.emit('play_card', {
+                room_code: roomCode,
+                card_index: selectedCardId,
+                target_index: selectedTargetId
+            });
+            
+            // 重置選擇
+            selectedCardId = null;
+            selectedTargetId = null;
+        }
+        
+        // 添加聊天訊息
+        function addChatMessage(message, type = 'user') {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            
+            if (type === 'system') {
+                messageElement.className = 'text-center text-muted';
+                messageElement.innerHTML = `<small>${message}</small>`;
+            } else {
+                messageElement.className = 'mb-2';
+                messageElement.textContent = message;
+            }
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // 顯示狀態訊息
+        function showStatus(message, type = 'info') {
+            const statusElement = document.getElementById('game-status');
+            const statusMessage = document.getElementById('status-message');
+            
+            statusMessage.textContent = message;
+            
+            // 根據類型設置顏色
+            switch(type) {
+                case 'error':
+                    statusElement.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
+                    break;
+                case 'success':
+                    statusElement.style.backgroundColor = 'rgba(0, 128, 0, 0.8)';
+                    break;
+                default:
+                    statusElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            }
+            
+            statusElement.style.display = 'block';
+            
+            // 3秒後隱藏
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 獲取卡牌類型中文名稱
+        function getCardTypeChinese(type) {
+            const typeMap = {
+                'industry': '產業',
+                'attack': '攻擊',
+                'defense': '防禦',
+                'missile': '導彈',
+                'magic': '魔法',
+                'contract': '契約',
+                'enchantment': '附魔'
+            };
+            
+            return typeMap[type] || type;
+        }
+        
+        // 聊天功能
+        const chatInput = document.getElementById('chat-input');
+        const sendChatBtn = document.getElementById('send-chat-btn');
+        
+        if (sendChatBtn && chatInput) {
+            sendChatBtn.addEventListener('click', sendChatMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+        }
+        
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                socket.emit('chat', {
+                    room_code: roomCode,
+                    message: message
+                });
+                chatInput.value = '';
+            }
+        }
+        
+        // 更新玩家列表的函數
+        function updatePlayerList(players) {
+            const playerList = document.getElementById('player-list');
+            if (!playerList) return;
+            
+            playerList.innerHTML = '';
+            
+            players.forEach(player => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+                    ${player.username}
+                    ${player.is_creator ? '<span class="badge bg-primary">房主</span>' : ''}
+                `;
+                playerList.appendChild(listItem);
+            });
+        }
+    });
+</script>
+{% endblock %} 

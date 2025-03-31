@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}遊戲大廳 - 魔法卡片對戰{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>遊戲大廳</h2>
+        <div class="d-flex justify-content-between mb-4">
+            <p>尋找適合的房間加入遊戲，或創建自己的房間。</p>
+            <a href="{{ url_for('main.create_room') }}" class="btn btn-success" id="create-room-btn">創建新房間</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                可用房間
+            </div>
+            <div class="card-body">
+                {% if rooms %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>房間編號</th>
+                                <th>創建者</th>
+                                <th>模式</th>
+                                <th>玩家數</th>
+                                <th>需要密碼</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="room-list">
+                            {% for room in rooms %}
+                            <tr>
+                                <td>{{ room.code }}</td>
+                                <td>{{ room.creator_name }}</td>
+                                <td>
+                                    {% if room.mode == 'normal' %}一般模式
+                                    {% elif room.mode == 'quick' %}快速模式
+                                    {% else %}自訂模式
+                                    {% endif %}
+                                </td>
+                                <td>{{ room.player_count }}/{{ room.max_players }}</td>
+                                <td>{{ '是' if room.has_password else '否' }}</td>
+                                <td>
+                                    {% if room.has_password %}
+                                    <button class="btn btn-sm btn-primary join-room-btn" data-bs-toggle="modal" data-bs-target="#passwordModal" data-room-code="{{ room.code }}" id="join-room-{{ room.code }}">加入</button>
+                                    {% else %}
+                                    <a href="/room/{{ room.code }}" class="btn btn-sm btn-primary" id="join-room-{{ room.code }}">加入</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info" id="no-rooms-message">
+                    目前沒有可用的房間。您可以創建一個新的房間！
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                直接加入房間
+            </div>
+            <div class="card-body">
+                <form id="join-room-form" class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="room-code" placeholder="輸入6位數房間代碼" maxlength="6" pattern="\d{6}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="password" class="form-control" id="room-password" placeholder="密碼（如果需要）">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100" id="join-room-submit">加入</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 密碼輸入模態框 -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">輸入房間密碼</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="password-form">
+                    <input type="hidden" id="modal-room-code">
+                    <div class="mb-3">
+                        <label for="modal-password" class="form-label">密碼</label>
+                        <input type="password" class="form-control" id="modal-password" required>
+                        <div id="password-error" class="text-danger mt-2" style="display: none;"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submit-password">確認</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始化Socket.IO連接
+        const socket = io();
+        
+        // 連接成功時請求最新的房間列表
+        socket.on('connect', function() {
+            console.log('Connected to lobby WebSocket');
+            socket.emit('request_lobby_update');
+        });
+        
+        // 處理房間列表更新
+        socket.on('refresh_lobby', function(data) {
+            console.log('Received lobby update');
+            updateRoomList(data.rooms);
+        });
+        
+        // 更新房間列表的函數
+        function updateRoomList(rooms) {
+            const roomList = document.getElementById('room-list');
+            const noRoomsMessage = document.getElementById('no-rooms-message');
+            
+            if (rooms.length === 0) {
+                // 如果沒有房間，顯示提示信息
+                if (roomList) roomList.closest('.table-responsive').style.display = 'none';
+                if (noRoomsMessage) noRoomsMessage.style.display = 'block';
+                return;
+            }
+            
+            // 有房間時，顯示表格，隱藏提示信息
+            if (roomList) roomList.closest('.table-responsive').style.display = 'block';
+            if (noRoomsMessage) noRoomsMessage.style.display = 'none';
+            
+            // 清空並重新填充房間列表
+            roomList.innerHTML = '';
+            
+            rooms.forEach(room => {
+                let modeText;
+                if (room.mode === 'normal') modeText = '一般模式';
+                else if (room.mode === 'quick') modeText = '快速模式';
+                else modeText = '自訂模式';
+                
+                const joinButton = room.has_password
+                    ? `<button class="btn btn-sm btn-primary join-room-btn" data-bs-toggle="modal" data-bs-target="#passwordModal" data-room-code="${room.code}" id="join-room-${room.code}">加入</button>`
+                    : `<a href="/room/${room.code}" class="btn btn-sm btn-primary" id="join-room-${room.code}">加入</a>`;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${room.code}</td>
+                    <td>${room.creator_name}</td>
+                    <td>${modeText}</td>
+                    <td>${room.player_count}/${room.max_players}</td>
+                    <td>${room.has_password ? '是' : '否'}</td>
+                    <td>${joinButton}</td>
+                `;
+                
+                roomList.appendChild(row);
+            });
+            
+            // 重新綁定密碼模態框事件
+            const passwordButtons = document.querySelectorAll('.join-room-btn');
+            passwordButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const roomCode = this.getAttribute('data-room-code');
+                    document.getElementById('modal-room-code').value = roomCode;
+                });
+            });
+        }
+        
+        // 處理加入有密碼的房間
+        const passwordModal = document.getElementById('passwordModal');
+        if (passwordModal) {
+            passwordModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const roomCode = button.getAttribute('data-room-code');
+                document.getElementById('modal-room-code').value = roomCode;
+            });
+        }
+        
+        // 提交密碼
+        const submitPasswordButton = document.getElementById('submit-password');
+        if (submitPasswordButton) {
+            submitPasswordButton.addEventListener('click', function() {
+                const password = document.getElementById('modal-password').value;
+                const roomCode = document.getElementById('modal-room-code').value;
+                
+                fetch('/join_room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        room_code: roomCode,
+                        password: password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/room/' + roomCode;
+                    } else {
+                        document.getElementById('password-error').textContent = data.error || '密碼錯誤';
+                        document.getElementById('password-error').style.display = 'block';
+                    }
+                });
+            });
+        }
+        
+        // 處理直接加入房間表單
+        const joinRoomForm = document.getElementById('join-room-form');
+        if (joinRoomForm) {
+            joinRoomForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const roomCode = document.getElementById('room-code').value;
+                const password = document.getElementById('room-password').value;
+                
+                fetch('/join_room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        room_code: roomCode,
+                        password: password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert(data.error || data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('發生錯誤，請稍後再試。');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %} 

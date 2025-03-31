@@ -1,0 +1,1187 @@
+{% extends "base.html" %}
+
+{% block title %}遊戲教學 - 魔法卡片對戰{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tutorial-section {
+        display: none;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .tutorial-section.active {
+        display: block;
+    }
+    
+    .nav-pills .nav-link.active {
+        background-color: #6c757d;
+    }
+    
+    .card-example {
+        width: 180px;
+        height: 240px;
+        margin: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        display: inline-block;
+        vertical-align: top;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card-example:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .card-example .card-name {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    
+    .card-example .card-type {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+    
+    .card-example .card-desc {
+        font-size: 12px;
+        margin-top: 10px;
+    }
+    
+    .card-example .card-cost {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ff6600;
+    }
+    
+    .card-industry { background-color: #e6f7ff; }
+    .card-attack { background-color: #fff1f0; }
+    .card-defense { background-color: #f6ffed; }
+    .card-missile { background-color: #fff0f6; }
+    .card-magic { background-color: #f9f0ff; }
+    .card-contract { background-color: #fffbe6; }
+    .card-enchantment { background-color: #fcffe6; }
+    
+    .nation-card {
+        width: 220px;
+        height: 300px;
+        margin: 10px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: inline-block;
+        vertical-align: top;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .nation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        background-color: #f8f9fa;
+    }
+    
+    .tutorial-nav {
+        position: sticky;
+        top: 20px;
+    }
+    
+    .tutorial-content {
+        min-height: 600px;
+    }
+    
+    .step-buttons {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .interactive-demo {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+        background-color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="tutorial-nav">
+            <h3>目錄</h3>
+            <div class="nav flex-column nav-pills" id="tutorial-tabs" role="tablist">
+                <button class="nav-link active" id="intro-tab" data-bs-toggle="pill" data-bs-target="#intro" type="button" role="tab">遊戲介紹</button>
+                <button class="nav-link" id="nations-tab" data-bs-toggle="pill" data-bs-target="#nations" type="button" role="tab">四大國家</button>
+                <button class="nav-link" id="resources-tab" data-bs-toggle="pill" data-bs-target="#resources" type="button" role="tab">資源系統</button>
+                <button class="nav-link" id="cards-tab" data-bs-toggle="pill" data-bs-target="#cards" type="button" role="tab">卡牌種類</button>
+                <button class="nav-link" id="gameplay-tab" data-bs-toggle="pill" data-bs-target="#gameplay" type="button" role="tab">遊戲流程</button>
+                <button class="nav-link" id="events-tab" data-bs-toggle="pill" data-bs-target="#events" type="button" role="tab">遊戲事件</button>
+                <button class="nav-link" id="tips-tab" data-bs-toggle="pill" data-bs-target="#tips" type="button" role="tab">遊戲技巧</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <h2>遊戲教學</h2>
+        <p class="lead">歡迎來到魔法卡片對戰的教學頁面！在這裡，您將學習如何玩這款充滿策略的卡牌遊戲。</p>
+        
+        <div class="tab-content tutorial-content" id="tutorial-content">
+            <!-- 遊戲介紹 -->
+            <div class="tab-pane fade show active" id="intro" role="tabpanel">
+                <h3>遊戲介紹</h3>
+                <p>《魔法卡片對戰》是一個回合制的多人線上卡牌對戰遊戲。在這個魔法存在的世界中，四國因不和而互相開戰。玩家需要選擇自己的國家，收集強力卡牌，管理資源，並擊敗對手！</p>
+                
+                <h4>遊戲特色：</h4>
+                <ul>
+                    <li>四個獨特國家，各有特殊能力</li>
+                    <li>多樣化的卡牌類型與效果</li>
+                    <li>資源管理與策略規劃</li>
+                    <li>隨機遊戲事件增加變數</li>
+                    <li>多人對戰，最多支持四名玩家</li>
+                </ul>
+                
+                <div class="interactive-demo" id="demo-intro">
+                    <h4>互動示範：基本界面</h4>
+                    <p>點擊下面的按鈕，查看遊戲的基本界面元素：</p>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="show-header">狀態欄</button>
+                        <button type="button" class="btn btn-outline-primary" id="show-resources">資源欄</button>
+                        <button type="button" class="btn btn-outline-primary" id="show-shop">商店區</button>
+                        <button type="button" class="btn btn-outline-primary" id="show-hand">手牌區</button>
+                    </div>
+                    <div class="mt-3" id="interface-display">
+                        <p class="text-muted">請點擊上方按鈕查看界面說明</p>
+                    </div>
+                </div>
+                
+                <div class="step-buttons">
+                    <span></span>
+                    <button class="btn btn-primary next-step" data-next="nations-tab">下一步：四大國家</button>
+                </div>
+            </div>
+            
+            <!-- 四大國家 -->
+            <div class="tab-pane fade" id="nations" role="tabpanel">
+                <h3>四大國家</h3>
+                <p>在遊戲開始時，每位玩家需要選擇一個國家。每個國家都有獨特的特殊能力，可以影響您的遊戲風格和策略。</p>
+                
+                <div class="d-flex flex-wrap justify-content-center">
+                    <div class="nation-card" id="nation-warrior">
+                        <h4>鬥士之國</h4>
+                        <h5>特殊能力：士氣高漲</h5>
+                        <p>提升生命上限，增加攻擊卡牌的攻擊力</p>
+                        <p class="text-muted">適合喜歡進攻型玩法的玩家</p>
+                    </div>
+                    
+                    <div class="nation-card" id="nation-holy">
+                        <h4>神聖之國</h4>
+                        <h5>特殊能力：神的加護</h5>
+                        <p>魔力全滿時可消耗全部魔力，隨機消除一項減益並獲得一個增益</p>
+                        <p class="text-muted">適合喜歡穩定成長的玩家</p>
+                    </div>
+                    
+                    <div class="nation-card" id="nation-business">
+                        <h4>商業之國</h4>
+                        <h5>特殊能力：精明管理</h5>
+                        <p>增加產業收入，提高資源效率</p>
+                        <p class="text-muted">適合喜歡經濟發展的玩家</p>
+                    </div>
+                    
+                    <div class="nation-card" id="nation-magic">
+                        <h4>魔法之國</h4>
+                        <h5>特殊能力：資深魔法</h5>
+                        <p>增強附魔效果，提升魔力容量</p>
+                        <p class="text-muted">適合喜歡施放魔法的玩家</p>
+                    </div>
+                </div>
+                
+                <div class="interactive-demo mt-4" id="demo-nations">
+                    <h4>互動示範：國家選擇</h4>
+                    <p>點擊上方的國家卡片，查看更詳細的國家策略指南：</p>
+                    <div id="nation-detail" class="p-3 border rounded bg-light">
+                        <p class="text-muted">請點擊上方任一國家卡片查看詳細說明</p>
+                    </div>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="intro-tab">上一步：遊戲介紹</button>
+                    <button class="btn btn-primary next-step" data-next="resources-tab">下一步：資源系統</button>
+                </div>
+            </div>
+            
+            <!-- 資源系統 -->
+            <div class="tab-pane fade" id="resources" role="tabpanel">
+                <h3>資源系統</h3>
+                <p>在《魔法卡片對戰》中，有效的資源管理是勝利的關鍵。以下是遊戲中的主要資源類型及其管理方式。</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">金錢系統</h4>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>金錢</strong>是遊戲中最基本的資源，可用於：</p>
+                                <ul>
+                                    <li>從商店購買卡牌</li>
+                                    <li>與其他玩家進行交易</li>
+                                    <li>存入銀行獲取利息</li>
+                                </ul>
+                                <p>金錢來源：</p>
+                                <ul>
+                                    <li>每回合的基礎收入</li>
+                                    <li>產業卡提供的額外收入</li>
+                                    <li>特定卡牌效果獲取</li>
+                                    <li>銀行利息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">生命系統</h4>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>生命值</strong>代表玩家的健康狀態：</p>
+                                <ul>
+                                    <li>初始生命值為100點</li>
+                                    <li>生命值歸零時玩家將被淘汰</li>
+                                    <li>部分國家有生命值上限提升能力</li>
+                                </ul>
+                                <p>生命值變化：</p>
+                                <ul>
+                                    <li>受到攻擊卡造成的傷害</li>
+                                    <li>防禦卡可回復部分生命值</li>
+                                    <li>減益可能導致生命值持續下降</li>
+                                    <li>特定遊戲事件可能影響生命值</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h4 class="mb-0">魔力系統</h4>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>魔力</strong>是施放魔法卡的必要資源：</p>
+                                <ul>
+                                    <li>初始魔力上限為100點</li>
+                                    <li>每回合自動恢復20點魔力</li>
+                                    <li>魔法之國可提升魔力上限和恢復效率</li>
+                                </ul>
+                                <p>魔力使用：</p>
+                                <ul>
+                                    <li>施放魔法卡需要消耗對應魔力</li>
+                                    <li>神聖之國可消耗全部魔力獲得特殊效果</li>
+                                    <li>魔力病減益會降低魔力恢復率</li>
+                                    <li>部分裝備可減少魔法卡魔力消耗</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h4 class="mb-0">銀行系統</h4>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>銀行</strong>是金錢管理的重要工具：</p>
+                                <ul>
+                                    <li>存入銀行的金錢每回合獲得5%利息</li>
+                                    <li>銀行存款不能直接用於購買商品</li>
+                                    <li>每回合只能進行一次存款或提款操作</li>
+                                    <li>無法在同一回合中同時存款和提款</li>
+                                </ul>
+                                <p>銀行使用策略：</p>
+                                <ul>
+                                    <li>閒置資金存入銀行獲取利息</li>
+                                    <li>預留足夠現金應對緊急購買需求</li>
+                                    <li>商業之國玩家可獲得額外利息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="interactive-demo mt-4" id="demo-resources">
+                    <h4>互動示範：資源管理</h4>
+                    <p>體驗銀行系統和資源管理：</p>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="money-sim">現金：</label>
+                                <input type="text" id="money-sim" class="form-control" value="100" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="bank-sim">銀行存款：</label>
+                                <input type="text" id="bank-sim" class="form-control" value="0" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="income-sim">每回合收入：</label>
+                                <input type="text" id="income-sim" class="form-control" value="10" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">存款操作</div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="deposit-amount">存款金額：</label>
+                                        <input type="number" id="deposit-amount" class="form-control" min="1" value="10">
+                                    </div>
+                                    <button class="btn btn-success mt-2 w-100" id="deposit-btn">存入銀行</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">提款操作</div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="withdraw-amount">提款金額：</label>
+                                        <input type="number" id="withdraw-amount" class="form-control" min="1" value="10">
+                                    </div>
+                                    <button class="btn btn-warning mt-2 w-100" id="withdraw-btn">從銀行提取</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3" id="sim-message">
+                        <p class="text-muted">請進行存款或提款操作，或進入下一回合</p>
+                    </div>
+                    
+                    <button class="btn btn-primary mt-2" id="next-turn-sim">進入下一回合</button>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="nations-tab">上一步：四大國家</button>
+                    <button class="btn btn-primary next-step" data-next="cards-tab">下一步：卡牌種類</button>
+                </div>
+            </div>
+            
+            <!-- 卡牌種類 -->
+            <div class="tab-pane fade" id="cards" role="tabpanel">
+                <h3>卡牌種類</h3>
+                <p>《魔法卡片對戰》中有多種不同類型的卡牌，每種卡牌都有獨特的功能和用途。每回合您最多可以使用兩張不同種類的卡牌。</p>
+                
+                <div class="card-examples d-flex flex-wrap justify-content-center">
+                    <div class="card-example card-industry" id="card-industry">
+                        <div class="card-name">產業卡</div>
+                        <div class="card-type">產業</div>
+                        <div class="card-cost">$50</div>
+                        <div class="card-desc">為玩家賺取被動收入，每回合+10金錢</div>
+                    </div>
+                    
+                    <div class="card-example card-attack" id="card-attack">
+                        <div class="card-name">攻擊卡</div>
+                        <div class="card-type">攻擊</div>
+                        <div class="card-cost">$30</div>
+                        <div class="card-desc">對目標玩家造成20點生命傷害</div>
+                    </div>
+                    
+                    <div class="card-example card-defense" id="card-defense">
+                        <div class="card-name">防禦卡</div>
+                        <div class="card-type">防禦</div>
+                        <div class="card-cost">$25</div>
+                        <div class="card-desc">抵擋下一次攻擊，並回復15點生命值</div>
+                    </div>
+                    
+                    <div class="card-example card-missile" id="card-missile">
+                        <div class="card-name">導彈卡</div>
+                        <div class="card-type">導彈</div>
+                        <div class="card-cost">$40</div>
+                        <div class="card-desc">摧毀目標玩家的一個產業</div>
+                    </div>
+                    
+                    <div class="card-example card-magic" id="card-magic">
+                        <div class="card-name">魔法卡</div>
+                        <div class="card-type">魔法</div>
+                        <div class="card-cost">$35</div>
+                        <div class="card-desc">消耗30點魔力，對所有敵人造成15點傷害</div>
+                    </div>
+                    
+                    <div class="card-example card-contract" id="card-contract">
+                        <div class="card-name">契約卡</div>
+                        <div class="card-type">契約</div>
+                        <div class="card-cost">$60</div>
+                        <div class="card-desc">獲得瘟疫減益，但立即獲得100金錢</div>
+                    </div>
+                    
+                    <div class="card-example card-enchantment" id="card-enchantment">
+                        <div class="card-name">附魔卡</div>
+                        <div class="card-type">附魔</div>
+                        <div class="card-cost">$45</div>
+                        <div class="card-desc">增強攻擊卡或防禦卡的效果50%</div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h4>卡牌使用策略</h4>
+                    <ul>
+                        <li><strong>早期遊戲：</strong> 優先考慮購買產業卡來建立穩定的收入來源</li>
+                        <li><strong>中期遊戲：</strong> 根據局勢平衡產業投資與攻防卡牌的獲取</li>
+                        <li><strong>後期遊戲：</strong> 集中資源對付特定對手，利用導彈卡破壞對手經濟</li>
+                        <li><strong>魔法卡使用：</strong> 保持足夠的魔力儲備，關鍵時刻使用強力魔法</li>
+                        <li><strong>契約卡風險：</strong> 衡量獲得即時好處與承受減益的風險</li>
+                    </ul>
+                </div>
+                
+                <div class="interactive-demo" id="demo-cards">
+                    <h4>互動示範：卡牌效果</h4>
+                    <p>點擊上方的卡牌示例，了解更詳細的卡牌效果和使用建議：</p>
+                    <div id="card-detail" class="p-3 border rounded bg-light">
+                        <p class="text-muted">請點擊上方任一卡牌查看詳細說明</p>
+                    </div>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="resources-tab">上一步：資源系統</button>
+                    <button class="btn btn-primary next-step" data-next="gameplay-tab">下一步：遊戲流程</button>
+                </div>
+            </div>
+            
+            <!-- 遊戲流程 -->
+            <div class="tab-pane fade" id="gameplay" role="tabpanel">
+                <h3>遊戲流程</h3>
+                <p>《魔法卡片對戰》採取回合制，四個玩家輪流獲得操作權，全員完成操作後為之一回合。</p>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">回合流程</h4>
+                    </div>
+                    <div class="card-body">
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-1">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">魔力恢復與收益獲取</div>
+                                    回復指定量的魔力，並獲得產業帶來的收入
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-2">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">減益效果結算</div>
+                                    如有減益（如瘟疫、魔力病等），則發動相應效果
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-3">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">銀行操作</div>
+                                    可選擇性地進行提款或存款（每回合只能選擇一種操作）
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-4">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">商店購買</div>
+                                    查看商店提供的卡牌，選擇購買（商店每回合刷新）
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-5">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">使用卡牌</div>
+                                    打出卡牌，每回合最多可使用兩張不同種類的卡牌
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start" id="phase-6">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">回合結束</div>
+                                    確認結束回合，輪到下一位玩家
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">商店系統</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>商店系統是遊戲中獲取卡牌的主要途徑：</p>
+                        <ul>
+                            <li>每回合商店會提供隨機的卡牌選擇</li>
+                            <li>隨著遊戲進度增加，稀有卡牌出現的機率提高</li>
+                            <li>同時卡牌的價格也會隨著遊戲進度而上升</li>
+                            <li>一旦玩家購買了某張卡牌，其他玩家將無法購買該卡牌直到下次商店刷新</li>
+                            <li>商店在所有玩家完成一輪回合後會自動刷新</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">背包系統</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>背包是存放您購買的卡牌的地方：</p>
+                        <ul>
+                            <li>背包容量限制為12張卡牌</li>
+                            <li>當背包已滿，您必須先使用或棄置卡牌才能購買新卡牌</li>
+                            <li>產業卡使用後會放置在土地區域，不佔用背包空間</li>
+                            <li>一次性卡牌使用後會自動從背包中移除</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="interactive-demo" id="demo-gameplay">
+                    <h4>互動示範：回合模擬</h4>
+                    <p>體驗一個簡化版的遊戲回合流程：</p>
+                    
+                    <div class="border rounded p-3 bg-light">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div>金錢: <span id="sim-money">100</span></div>
+                            </div>
+                            <div class="col-md-3">
+                                <div>生命: <span id="sim-life">100</span></div>
+                            </div>
+                            <div class="col-md-3">
+                                <div>魔力: <span id="sim-mana">100</span></div>
+                            </div>
+                            <div class="col-md-3">
+                                <div>收入: <span id="sim-income">10</span>/回合</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <button class="btn btn-outline-primary active" id="sim-phase-1">1. 資源恢復</button>
+                            <button class="btn btn-outline-primary" id="sim-phase-2">2. 減益結算</button>
+                            <button class="btn btn-outline-primary" id="sim-phase-3">3. 銀行操作</button>
+                            <button class="btn btn-outline-primary" id="sim-phase-4">4. 商店購買</button>
+                            <button class="btn btn-outline-primary" id="sim-phase-5">5. 使用卡牌</button>
+                            <button class="btn btn-outline-primary" id="sim-phase-6">6. 結束回合</button>
+                        </div>
+                        
+                        <div id="sim-phase-content" class="p-3 border rounded">
+                            <h5>第1階段：資源恢復</h5>
+                            <p>魔力恢復了20點，您獲得了10金錢的收入！</p>
+                            <button class="btn btn-primary" id="sim-next-phase">下一階段</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="cards-tab">上一步：卡牌種類</button>
+                    <button class="btn btn-primary next-step" data-next="events-tab">下一步：遊戲事件</button>
+                </div>
+            </div>
+            
+            <!-- 遊戲事件 -->
+            <div class="tab-pane fade" id="events" role="tabpanel">
+                <h3>遊戲事件</h3>
+                <p>從遊戲開始過了5回合後，每5回合會隨機替換一種災害或祝福事件，影響所有玩家。這些事件增加了遊戲的變數和策略深度。</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0">災害</h4>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item" id="disaster-1">
+                                        <h5>魔力異常</h5>
+                                        <p>所有玩家的魔力清空</p>
+                                    </li>
+                                    <li class="list-group-item" id="disaster-2">
+                                        <h5>大規模天災</h5>
+                                        <p>所有玩家每回合都有20%機率扣減10點生命值</p>
+                                    </li>
+                                    <li class="list-group-item" id="disaster-3">
+                                        <h5>供應鏈破裂</h5>
+                                        <p>商品價格上升兩倍</p>
+                                    </li>
+                                    <li class="list-group-item" id="disaster-4">
+                                        <h5>沙漠化</h5>
+                                        <p>所有玩家隨機損失一個產業</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-4 border-success">
+                            <div class="card-header bg-success text-white">
+                                <h4 class="mb-0">祝福</h4>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item" id="blessing-1">
+                                        <h5>魔神的祝福</h5>
+                                        <p>所有玩家恢復20%魔力</p>
+                                    </li>
+                                    <li class="list-group-item" id="blessing-2">
+                                        <h5>守護神降臨</h5>
+                                        <p>所有玩家期間不會獲得任何減益</p>
+                                    </li>
+                                    <li class="list-group-item" id="blessing-3">
+                                        <h5>經濟發達</h5>
+                                        <p>所有玩家額外獲得10%金錢</p>
+                                    </li>
+                                    <li class="list-group-item" id="blessing-4">
+                                        <h5>大豐收</h5>
+                                        <p>商店內的商品七折</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="interactive-demo" id="demo-events">
+                    <h4>互動示範：事件影響</h4>
+                    <p>點擊下方按鈕模擬隨機事件的觸發：</p>
+                    
+                    <div class="text-center mb-3">
+                        <button class="btn btn-danger me-2" id="trigger-disaster">觸發隨機災害</button>
+                        <button class="btn btn-success" id="trigger-blessing">觸發隨機祝福</button>
+                    </div>
+                    
+                    <div id="event-result" class="p-3 border rounded bg-light">
+                        <p class="text-muted">點擊上方按鈕觸發隨機事件，查看其影響</p>
+                    </div>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="gameplay-tab">上一步：遊戲流程</button>
+                    <button class="btn btn-primary next-step" data-next="tips-tab">下一步：遊戲技巧</button>
+                </div>
+            </div>
+            
+            <!-- 遊戲技巧 -->
+            <div class="tab-pane fade" id="tips" role="tabpanel">
+                <h3>遊戲技巧</h3>
+                <p>以下是一些有助於提高您在《魔法卡片對戰》中勝率的策略和技巧。</p>
+                
+                <div class="accordion" id="tipAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                遊戲開局策略
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#tipAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>優先購買產業卡：</strong> 建立穩定的收入來源是早期最重要的目標</li>
+                                    <li><strong>避免過早攻擊：</strong> 在建立經濟基礎前過早攻擊只會浪費資源</li>
+                                    <li><strong>合理使用銀行：</strong> 將部分資金存入銀行獲取利息，但保留足夠現金應對突發需求</li>
+                                    <li><strong>選擇適合國家：</strong> 根據您喜歡的遊戲風格選擇合適的國家</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                中期發展技巧
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#tipAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>觀察對手動向：</strong> 密切關注其他玩家的發展方向和資源分配</li>
+                                    <li><strong>平衡攻防：</strong> 購買足夠的防禦卡來應對可能的攻擊</li>
+                                    <li><strong>利用國家能力：</strong> 充分發揮您所選國家的特殊能力</li>
+                                    <li><strong>關注稀有卡牌：</strong> 商店中的稀有卡牌往往效果強大，不要錯過</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                後期決勝要點
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#tipAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>集中火力：</strong> 選擇最具威脅的對手重點攻擊，避免分散資源</li>
+                                    <li><strong>破壞產業：</strong> 使用導彈卡破壞對手的產業，削弱其經濟實力</li>
+                                    <li><strong>靈活應對事件：</strong> 根據遊戲事件調整策略，災害與祝福可能成為翻盤契機</li>
+                                    <li><strong>儲備強力卡牌：</strong> 保留一些強力卡牌用於關鍵時刻</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                各國家專屬技巧
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#tipAccordion">
+                            <div class="accordion-body">
+                                <h5>鬥士之國</h5>
+                                <p>利用增強的攻擊力快速削弱對手，較高的生命上限讓您承受更多風險</p>
+                                
+                                <h5>神聖之國</h5>
+                                <p>專注於積累魔力，關鍵時刻使用特殊能力消除減益獲取優勢</p>
+                                
+                                <h5>商業之國</h5>
+                                <p>大量建設產業，利用增強的收入優勢獲取更多資源和卡牌</p>
+                                
+                                <h5>魔法之國</h5>
+                                <p>優先獲取魔法卡和附魔卡，利用增強的魔法效果對敵人造成重創</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h4>最終建議</h4>
+                    <p>《魔法卡片對戰》是一個兼具策略性和運氣的遊戲。掌握基本規則後，多進行實戰練習，嘗試不同的策略組合，您將逐漸成為遊戲高手！</p>
+                    <p>祝您遊戲愉快！</p>
+                </div>
+                
+                <div class="step-buttons">
+                    <button class="btn btn-secondary prev-step" data-prev="events-tab">上一步：遊戲事件</button>
+                    <a href="{{ url_for('main.lobby') }}" class="btn btn-success">進入遊戲大廳</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 處理頁籤切換
+    const navLinks = document.querySelectorAll('#tutorial-tabs .nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // 處理上一步/下一步按鈕
+    const nextButtons = document.querySelectorAll('.next-step');
+    const prevButtons = document.querySelectorAll('.prev-step');
+    
+    nextButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const nextTabId = this.getAttribute('data-next');
+            document.getElementById(nextTabId).click();
+        });
+    });
+    
+    prevButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const prevTabId = this.getAttribute('data-prev');
+            document.getElementById(prevTabId).click();
+        });
+    });
+    
+    // 遊戲介紹部分的互動示範
+    const interfaceButtons = document.querySelectorAll('#demo-intro button');
+    const interfaceDisplay = document.getElementById('interface-display');
+    
+    interfaceButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.id;
+            let content = '';
+            
+            switch(id) {
+                case 'show-header':
+                    content = '<h5>狀態欄</h5><p>顯示當前遊戲回合、事件信息和遊戲狀態。您可以隨時查看目前是誰的回合以及遊戲進度。</p>';
+                    break;
+                case 'show-resources':
+                    content = '<h5>資源欄</h5><p>顯示您的生命值、魔力值、金錢和收入等資源信息。這是監控您遊戲狀態的重要區域。</p>';
+                    break;
+                case 'show-shop':
+                    content = '<h5>商店區</h5><p>每回合刷新的卡牌商店，您可以在此購買各種卡牌。記住，一旦卡牌被購買，其他玩家就無法獲得直到下次刷新。</p>';
+                    break;
+                case 'show-hand':
+                    content = '<h5>手牌區</h5><p>顯示您目前持有的卡牌，您可以在此使用卡牌。背包最多可存放12張卡牌。</p>';
+                    break;
+            }
+            
+            interfaceDisplay.innerHTML = content;
+        });
+    });
+    
+    // 國家選擇互動
+    const nationCards = document.querySelectorAll('.nation-card');
+    const nationDetail = document.getElementById('nation-detail');
+    
+    nationCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const id = this.id;
+            let content = '';
+            
+            switch(id) {
+                case 'nation-warrior':
+                    content = '<h5>鬥士之國 - 詳細策略</h5>' +
+                              '<p>鬥士之國擅長進攻，適合喜歡直接對抗的玩家。</p>' +
+                              '<p><strong>優勢：</strong>更高的生命上限和攻擊力，能夠快速削弱敵人</p>' +
+                              '<p><strong>劣勢：</strong>收入增長較慢，需要更多資源投入攻擊卡</p>' +
+                              '<p><strong>建議卡牌：</strong>攻擊卡、導彈卡、防禦卡</p>';
+                    break;
+                case 'nation-holy':
+                    content = '<h5>神聖之國 - 詳細策略</h5>' +
+                              '<p>神聖之國具有獨特的減益清除能力，適合長期戰略。</p>' +
+                              '<p><strong>優勢：</strong>能夠抵抗減益效果，遊戲後期更穩定</p>' +
+                              '<p><strong>劣勢：</strong>前期發展較慢，需要積累足夠魔力</p>' +
+                              '<p><strong>建議卡牌：</strong>魔法卡、防禦卡、契約卡</p>';
+                    break;
+                case 'nation-business':
+                    content = '<h5>商業之國 - 詳細策略</h5>' +
+                              '<p>商業之國經濟發展能力強，適合喜歡穩健發展的玩家。</p>' +
+                              '<p><strong>優勢：</strong>產業收入更高，資源積累快</p>' +
+                              '<p><strong>劣勢：</strong>防禦和攻擊能力較弱，需要依靠卡牌彌補</p>' +
+                              '<p><strong>建議卡牌：</strong>產業卡、防禦卡、購買多種卡牌</p>';
+                    break;
+                case 'nation-magic':
+                    content = '<h5>魔法之國 - 詳細策略</h5>' +
+                              '<p>魔法之國擅長魔法攻擊，適合喜歡靈活戰術的玩家。</p>' +
+                              '<p><strong>優勢：</strong>更高的魔力容量和附魔效果</p>' +
+                              '<p><strong>劣勢：</strong>生命值較低，需要更多防禦措施</p>' +
+                              '<p><strong>建議卡牌：</strong>魔法卡、附魔卡、防禦卡</p>';
+                    break;
+            }
+            
+            nationDetail.innerHTML = content;
+        });
+    });
+    
+    // 卡牌互動
+    const cardExamples = document.querySelectorAll('.card-example');
+    const cardDetail = document.getElementById('card-detail');
+    
+    cardExamples.forEach(card => {
+        card.addEventListener('click', function() {
+            const id = this.id;
+            let content = '';
+            
+            switch(id) {
+                case 'card-industry':
+                    content = '<h5>產業卡 - 詳細說明</h5>' +
+                              '<p>產業卡是經濟發展的基礎，提供穩定的被動收入。</p>' +
+                              '<p><strong>使用時機：</strong>遊戲早期優先購買，建立經濟基礎</p>' +
+                              '<p><strong>注意事項：</strong>可能被導彈卡破壞，避免過度集中投資</p>' +
+                              '<p><strong>組合建議：</strong>與防禦卡配合保護您的產業投資</p>';
+                    break;
+                case 'card-attack':
+                    content = '<h5>攻擊卡 - 詳細說明</h5>' +
+                              '<p>攻擊卡用於直接對敵人造成生命值傷害。</p>' +
+                              '<p><strong>使用時機：</strong>對手防禦薄弱或生命值較低時</p>' +
+                              '<p><strong>注意事項：</strong>可能被防禦卡抵消，需要戰略性使用</p>' +
+                              '<p><strong>組合建議：</strong>與附魔卡配合提升攻擊效果</p>';
+                    break;
+                case 'card-defense':
+                    content = '<h5>防禦卡 - 詳細說明</h5>' +
+                              '<p>防禦卡可以抵擋攻擊並恢復生命值。</p>' +
+                              '<p><strong>使用時機：</strong>預感將受到攻擊或生命值較低時</p>' +
+                              '<p><strong>注意事項：</strong>僅能抵擋一次攻擊，時機很重要</p>' +
+                              '<p><strong>組合建議：</strong>與附魔卡配合提升防禦和恢復效果</p>';
+                    break;
+                case 'card-missile':
+                    content = '<h5>導彈卡 - 詳細說明</h5>' +
+                              '<p>導彈卡可以摧毀敵人的產業，削弱其經濟能力。</p>' +
+                              '<p><strong>使用時機：</strong>敵人有多個產業時，削弱其收入</p>' +
+                              '<p><strong>注意事項：</strong>對沒有產業的敵人無效</p>' +
+                              '<p><strong>組合建議：</strong>與攻擊卡配合，先破壞經濟再攻擊生命</p>';
+                    break;
+                case 'card-magic':
+                    content = '<h5>魔法卡 - 詳細說明</h5>' +
+                              '<p>魔法卡消耗魔力，但通常有強大或獨特的效果。</p>' +
+                              '<p><strong>使用時機：</strong>有足夠魔力且需要強力效果時</p>' +
+                              '<p><strong>注意事項：</strong>需要管理好魔力消耗</p>' +
+                              '<p><strong>組合建議：</strong>魔法之國玩家可以更頻繁地使用</p>';
+                    break;
+                case 'card-contract':
+                    content = '<h5>契約卡 - 詳細說明</h5>' +
+                              '<p>契約卡提供強力效果，但會給您帶來減益。</p>' +
+                              '<p><strong>使用時機：</strong>急需資源且能承受減益風險時</p>' +
+                              '<p><strong>注意事項：</strong>減益可能長期影響遊戲</p>' +
+                              '<p><strong>組合建議：</strong>神聖之國玩家可以更安全地使用</p>';
+                    break;
+                case 'card-enchantment':
+                    content = '<h5>附魔卡 - 詳細說明</h5>' +
+                              '<p>附魔卡可以增強其他卡牌的效果。</p>' +
+                              '<p><strong>使用時機：</strong>配合攻擊卡或防禦卡使用</p>' +
+                              '<p><strong>注意事項：</strong>單獨使用沒有效果</p>' +
+                              '<p><strong>組合建議：</strong>魔法之國玩家可獲得更強的附魔效果</p>';
+                    break;
+            }
+            
+            cardDetail.innerHTML = content;
+        });
+    });
+    
+    // 資源管理模擬器
+    let simMoney = 100;
+    let simBank = 0;
+    let simIncome = 10;
+    let bankActionUsed = false;
+    
+    const depositBtn = document.getElementById('deposit-btn');
+    const withdrawBtn = document.getElementById('withdraw-btn');
+    const nextTurnSimBtn = document.getElementById('next-turn-sim');
+    const simMessage = document.getElementById('sim-message');
+    
+    depositBtn.addEventListener('click', function() {
+        const amount = parseInt(document.getElementById('deposit-amount').value);
+        if (isNaN(amount) || amount <= 0) {
+            simMessage.innerHTML = '<p class="text-danger">請輸入有效的存款金額</p>';
+            return;
+        }
+        
+        if (amount > simMoney) {
+            simMessage.innerHTML = '<p class="text-danger">金錢不足，無法存款</p>';
+            return;
+        }
+        
+        if (bankActionUsed) {
+            simMessage.innerHTML = '<p class="text-warning">本回合已經進行過銀行操作，請等待下一回合</p>';
+            return;
+        }
+        
+        simMoney -= amount;
+        simBank += amount;
+        bankActionUsed = true;
+        updateResourceSim();
+        simMessage.innerHTML = `<p class="text-success">成功存入 ${amount} 金錢到銀行</p>`;
+    });
+    
+    withdrawBtn.addEventListener('click', function() {
+        const amount = parseInt(document.getElementById('withdraw-amount').value);
+        if (isNaN(amount) || amount <= 0) {
+            simMessage.innerHTML = '<p class="text-danger">請輸入有效的提款金額</p>';
+            return;
+        }
+        
+        if (amount > simBank) {
+            simMessage.innerHTML = '<p class="text-danger">銀行存款不足，無法提款</p>';
+            return;
+        }
+        
+        if (bankActionUsed) {
+            simMessage.innerHTML = '<p class="text-warning">本回合已經進行過銀行操作，請等待下一回合</p>';
+            return;
+        }
+        
+        simMoney += amount;
+        simBank -= amount;
+        bankActionUsed = true;
+        updateResourceSim();
+        simMessage.innerHTML = `<p class="text-success">成功從銀行提取 ${amount} 金錢</p>`;
+    });
+    
+    nextTurnSimBtn.addEventListener('click', function() {
+        // 收入和利息
+        simMoney += simIncome;
+        const interest = Math.floor(simBank * 0.05);
+        simBank += interest;
+        bankActionUsed = false;
+        
+        updateResourceSim();
+        simMessage.innerHTML = `<p>新回合開始！獲得收入 ${simIncome} 金錢，銀行利息 ${interest} 金錢</p>`;
+    });
+    
+    function updateResourceSim() {
+        document.getElementById('money-sim').value = simMoney;
+        document.getElementById('bank-sim').value = simBank;
+        document.getElementById('income-sim').value = simIncome;
+    }
+    
+    // 遊戲流程模擬
+    let currentPhase = 1;
+    const simPhaseButtons = document.querySelectorAll('[id^="sim-phase-"]');
+    const simPhaseContent = document.getElementById('sim-phase-content');
+    const simNextPhaseBtn = document.getElementById('sim-next-phase');
+    
+    simPhaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const phase = parseInt(this.id.split('-')[2]);
+            showPhase(phase);
+        });
+    });
+    
+    simNextPhaseBtn.addEventListener('click', function() {
+        currentPhase++;
+        if (currentPhase > 6) currentPhase = 1;
+        showPhase(currentPhase);
+    });
+    
+    function showPhase(phase) {
+        currentPhase = phase;
+        simPhaseButtons.forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`sim-phase-${phase}`).classList.add('active');
+        
+        let content = '';
+        switch(phase) {
+            case 1:
+                content = '<h5>第1階段：資源恢復</h5>' +
+                          '<p>魔力恢復了20點，您獲得了10金錢的收入！</p>';
+                document.getElementById('sim-money').textContent = parseInt(document.getElementById('sim-money').textContent) + 10;
+                document.getElementById('sim-mana').textContent = parseInt(document.getElementById('sim-mana').textContent) + 20;
+                break;
+            case 2:
+                content = '<h5>第2階段：減益結算</h5>' +
+                          '<p>您沒有任何減益效果，本階段無事發生。</p>';
+                break;
+            case 3:
+                content = '<h5>第3階段：銀行操作</h5>' +
+                          '<p>您可以選擇存款或提款（但不能同時進行）：</p>' +
+                          '<div class="row mt-2">' +
+                          '<div class="col-md-6"><button class="btn btn-outline-success w-100">存款</button></div>' +
+                          '<div class="col-md-6"><button class="btn btn-outline-warning w-100">提款</button></div>' +
+                          '</div>';
+                break;
+            case 4:
+                content = '<h5>第4階段：商店購買</h5>' +
+                          '<p>商店刷新了以下卡牌：</p>' +
+                          '<div class="d-flex flex-wrap">' +
+                          '<div class="card-example card-industry" style="transform: scale(0.8);">' +
+                          '<div class="card-name">小型工廠</div>' +
+                          '<div class="card-type">產業</div>' +
+                          '<div class="card-cost">$50</div>' +
+                          '<div class="card-desc">每回合+10金錢</div>' +
+                          '</div>' +
+                          '<div class="card-example card-attack" style="transform: scale(0.8);">' +
+                          '<div class="card-name">火球術</div>' +
+                          '<div class="card-type">攻擊</div>' +
+                          '<div class="card-cost">$30</div>' +
+                          '<div class="card-desc">造成15點傷害</div>' +
+                          '</div>' +
+                          '<div class="card-example card-defense" style="transform: scale(0.8);">' +
+                          '<div class="card-name">能量護盾</div>' +
+                          '<div class="card-type">防禦</div>' +
+                          '<div class="card-cost">$25</div>' +
+                          '<div class="card-desc">抵擋一次攻擊</div>' +
+                          '</div>' +
+                          '</div>';
+                break;
+            case 5:
+                content = '<h5>第5階段：使用卡牌</h5>' +
+                          '<p>您的背包中有以下卡牌可以使用：</p>' +
+                          '<div class="d-flex flex-wrap">' +
+                          '<div class="card-example card-industry" style="transform: scale(0.8);">' +
+                          '<div class="card-name">小型工廠</div>' +
+                          '<div class="card-type">產業</div>' +
+                          '<div class="card-cost">$50</div>' +
+                          '<div class="card-desc">每回合+10金錢</div>' +
+                          '</div>' +
+                          '<div class="card-example card-attack" style="transform: scale(0.8);">' +
+                          '<div class="card-name">火球術</div>' +
+                          '<div class="card-type">攻擊</div>' +
+                          '<div class="card-cost">$30</div>' +
+                          '<div class="card-desc">造成15點傷害</div>' +
+                          '</div>' +
+                          '</div>' +
+                          '<p class="mt-2">記住：您每回合最多可以使用兩張不同種類的卡牌</p>';
+                break;
+            case 6:
+                content = '<h5>第6階段：結束回合</h5>' +
+                          '<p>確認完成所有操作後，您可以結束回合，輪到下一位玩家。</p>' +
+                          '<button class="btn btn-danger">結束回合</button>';
+                break;
+        }
+        
+        simPhaseContent.innerHTML = content + '<button class="btn btn-primary mt-3" id="sim-next-phase">下一階段</button>';
+        document.getElementById('sim-next-phase').addEventListener('click', function() {
+            currentPhase++;
+            if (currentPhase > 6) currentPhase = 1;
+            showPhase(currentPhase);
+        });
+    }
+    
+    // 事件模擬
+    const triggerDisasterBtn = document.getElementById('trigger-disaster');
+    const triggerBlessingBtn = document.getElementById('trigger-blessing');
+    const eventResult = document.getElementById('event-result');
+    
+    triggerDisasterBtn.addEventListener('click', function() {
+        const disasters = [
+            {name: '魔力異常', effect: '所有玩家的魔力清空'},
+            {name: '大規模天災', effect: '所有玩家每回合都有20%機率扣減10點生命值'},
+            {name: '供應鏈破裂', effect: '商品價格上升兩倍'},
+            {name: '沙漠化', effect: '所有玩家隨機損失一個產業'}
+        ];
+        
+        const randomDisaster = disasters[Math.floor(Math.random() * disasters.length)];
+        
+        let content = '<div class="alert alert-danger">' +
+                      `<h5>災害發生：${randomDisaster.name}</h5>` +
+                      `<p>${randomDisaster.effect}</p>` +
+                      '<p>災害將持續至下一個事件替換它為止。</p>' +
+                      '</div>';
+        
+        if (randomDisaster.name === '魔力異常') {
+            document.getElementById('sim-mana').textContent = '0';
+        }
+        
+        eventResult.innerHTML = content;
+    });
+    
+    triggerBlessingBtn.addEventListener('click', function() {
+        const blessings = [
+            {name: '魔神的祝福', effect: '所有玩家恢復20%魔力'},
+            {name: '守護神降臨', effect: '所有玩家期間不會獲得任何減益'},
+            {name: '經濟發達', effect: '所有玩家額外獲得10%金錢'},
+            {name: '大豐收', effect: '商店內的商品七折'}
+        ];
+        
+        const randomBlessing = blessings[Math.floor(Math.random() * blessings.length)];
+        
+        let content = '<div class="alert alert-success">' +
+                      `<h5>祝福降臨：${randomBlessing.name}</h5>` +
+                      `<p>${randomBlessing.effect}</p>` +
+                      '<p>祝福將持續至下一個事件替換它為止。</p>' +
+                      '</div>';
+        
+        if (randomBlessing.name === '魔神的祝福') {
+            const currentMana = parseInt(document.getElementById('sim-mana').textContent);
+            document.getElementById('sim-mana').textContent = currentMana + Math.floor(currentMana * 0.2);
+        } else if (randomBlessing.name === '經濟發達') {
+            const currentMoney = parseInt(document.getElementById('sim-money').textContent);
+            document.getElementById('sim-money').textContent = currentMoney + Math.floor(currentMoney * 0.1);
+        }
+        
+        eventResult.innerHTML = content;
+    });
+});
+</script>
+{% endblock %} 

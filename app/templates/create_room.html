@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}創建房間 - 魔法卡片對戰{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">創建新房間</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.create_room') }}">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>基本設定</h5>
+                            <div class="mb-3">
+                                <label for="player_count" class="form-label">玩家人數</label>
+                                <select class="form-select" id="player_count" name="player_count">
+                                    <option value="2">2 人</option>
+                                    <option value="3">3 人</option>
+                                    <option value="4" selected>4 人</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="mode" class="form-label">遊戲模式</label>
+                                <select class="form-select" id="mode" name="mode" onchange="toggleGameSettings()">
+                                    <option value="normal" selected>一般模式</option>
+                                    <option value="quick">快速模式</option>
+                                    <option value="custom">自訂模式</option>
+                                </select>
+                                <div class="form-text">
+                                    一般模式：標準遊戲設定<br>
+                                    快速模式：資源加成，加速遊戲進度<br>
+                                    自訂模式：自由設定所有參數
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">房間密碼 (可選)</label>
+                                <input type="password" class="form-control" id="password" name="password" maxlength="4" placeholder="請輸入四位數密碼">
+                                <div class="form-text">設置四位數密碼保護房間</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="disaster_enabled" name="disaster_enabled" checked>
+                                    <label class="form-check-label" for="disaster_enabled">
+                                        啟用災害系統
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="blessing_enabled" name="blessing_enabled" checked>
+                                    <label class="form-check-label" for="blessing_enabled">
+                                        啟用祝福系統
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="random_nation" name="random_nation">
+                                    <label class="form-check-label" for="random_nation">
+                                        隨機分配國家
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="allow_duplicate_nations" name="allow_duplicate_nations" checked>
+                                    <label class="form-check-label" for="allow_duplicate_nations">
+                                        允許國家重複
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <!-- 快速模式和自訂模式的額外設定 -->
+                            <div id="quick-custom-settings" style="display: none;">
+                                <h5>進階設定</h5>
+                                <div id="quick-mode-notice" class="alert alert-info mb-3" style="display: none;">
+                                    快速模式使用預設值，這些設定不可更改。若要自訂這些設定，請選擇自訂模式。
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="initial_money" class="form-label">初始金錢</label>
+                                    <input type="number" class="form-control" id="initial_money" name="initial_money" value="100" min="50" max="500">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="income_multiplier" class="form-label">收入倍率</label>
+                                    <input type="number" class="form-control" id="income_multiplier" name="income_multiplier" value="1.0" min="0.5" max="3.0" step="0.1">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="mana_recovery_rate" class="form-label">魔力回復率</label>
+                                    <input type="number" class="form-control" id="mana_recovery_rate" name="mana_recovery_rate" value="1.0" min="0.5" max="3.0" step="0.1">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="event_frequency" class="form-label">事件頻率 (回合數)</label>
+                                    <input type="number" class="form-control" id="event_frequency" name="event_frequency" value="5" min="2" max="10">
+                                </div>
+                            </div>
+                            
+                            <!-- 僅自訂模式的設定 -->
+                            <div id="custom-only-settings" style="display: none;">
+                                <h5>自訂模式專屬設定</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="initial_life" class="form-label">初始生命值</label>
+                                    <input type="number" class="form-control" id="initial_life" name="initial_life" value="100" min="50" max="200">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="initial_mana" class="form-label">初始魔力值/上限</label>
+                                    <input type="number" class="form-control" id="initial_mana" name="initial_mana" value="100" min="50" max="200">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary" id="create-room-submit">創建房間</button>
+                        <a href="{{ url_for('main.lobby') }}" class="btn btn-outline-secondary">返回大廳</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleGameSettings() {
+        const mode = document.getElementById('mode').value;
+        const quickCustomSettings = document.getElementById('quick-custom-settings');
+        const customOnlySettings = document.getElementById('custom-only-settings');
+        const quickModeNotice = document.getElementById('quick-mode-notice');
+        
+        // 獲取所有進階設定的輸入欄位
+        const advancedInputs = [
+            document.getElementById('initial_money'),
+            document.getElementById('income_multiplier'),
+            document.getElementById('mana_recovery_rate'),
+            document.getElementById('event_frequency')
+        ];
+        
+        // 根據模式顯示/隱藏設定
+        if (mode === 'normal') {
+            quickCustomSettings.style.display = 'block';
+            customOnlySettings.style.display = 'none';
+            quickModeNotice.style.display = 'block';
+            quickModeNotice.innerText = '一般模式使用預設值，這些設定不可更改。若要自訂這些設定，請選擇自訂模式。';
+            
+            // 設置一般模式預設值
+            document.getElementById('initial_money').value = '100';
+            document.getElementById('income_multiplier').value = '1.0';
+            document.getElementById('mana_recovery_rate').value = '1.0';
+            document.getElementById('event_frequency').value = '5';
+            document.getElementById('initial_life').value = '100';
+            document.getElementById('initial_mana').value = '100';
+            
+            // 禁用進階設定欄位
+            advancedInputs.forEach(input => {
+                input.disabled = true;
+                input.classList.add('bg-light');
+            });
+        } 
+        else if (mode === 'quick') {
+            quickCustomSettings.style.display = 'block';
+            customOnlySettings.style.display = 'none';
+            quickModeNotice.style.display = 'block';
+            quickModeNotice.innerText = '快速模式使用預設值，這些設定不可更改。若要自訂這些設定，請選擇自訂模式。';
+            
+            // 設置快速模式預設值
+            document.getElementById('initial_money').value = '200';
+            document.getElementById('income_multiplier').value = '1.5';
+            document.getElementById('mana_recovery_rate').value = '1.5';
+            document.getElementById('event_frequency').value = '3';
+            
+            // 禁用進階設定欄位
+            advancedInputs.forEach(input => {
+                input.disabled = true;
+                input.classList.add('bg-light');
+            });
+        } 
+        else if (mode === 'custom') {
+            quickCustomSettings.style.display = 'block';
+            customOnlySettings.style.display = 'block';
+            quickModeNotice.style.display = 'none';
+            
+            // 啟用進階設定欄位
+            advancedInputs.forEach(input => {
+                input.disabled = false;
+                input.classList.remove('bg-light');
+            });
+        }
+    }
+    
+    // 頁面載入時初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleGameSettings();
+    });
+</script>
+{% endblock %} 

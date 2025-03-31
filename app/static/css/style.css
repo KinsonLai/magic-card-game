@@ -1,0 +1,100 @@
+/* 全局樣式 */
+body {
+    font-family: 'Microsoft JhengHei', Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* 頁頭樣式 */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 頁腳樣式 */
+footer {
+    box-shadow: 0 -1px 4px rgba(0,0,0,0.1);
+}
+
+/* 卡片效果 */
+.card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 按鈕效果 */
+.btn {
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* 表單元素 */
+.form-control {
+    border-radius: 6px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* 動畫效果 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* 自定義顏色 */
+.bg-custom-primary {
+    background-color: #4a6bff;
+}
+
+.text-custom-primary {
+    color: #4a6bff;
+}
+
+/* 遊戲相關樣式 */
+.nation-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.nation-fighter { background-color: #f5222d; }
+.nation-holy { background-color: #faad14; }
+.nation-merchant { background-color: #52c41a; }
+.nation-magic { background-color: #1890ff; }
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .jumbotron h1 {
+        font-size: 2rem;
+    }
+    
+    .card-container {
+        justify-content: center;
+    }
+    
+    .game-card {
+        width: 100px;
+        height: 140px;
+    }
+} 
