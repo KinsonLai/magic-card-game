@@ -27,26 +27,8 @@
 - 銀行：可存放金錢並獲取利息
 
 ## 安裝與運行
+到訪[網站域名]即可遊玩
 
-1. 克隆項目到本地：
-```
-git clone [repository_url]
-```
-
-2. 安裝依賴：
-```
-pip install -r requirements.txt
-```
-
-3. 運行應用：
-```
-python run.py
-```
-
-4. 在瀏覽器中訪問：
-```
-http://localhost:5000
-```
 
 ## 技術架構
 
@@ -67,8 +49,5 @@ http://localhost:5000
 
 ## 開發者
 
-- [您的名字]
-
-## 授權
-
-本項目使用 [MIT 授權](LICENSE)。 
+- KinsonLai
+- Cursor AI
